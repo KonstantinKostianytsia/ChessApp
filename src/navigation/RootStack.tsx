@@ -7,7 +7,10 @@ const Stack = createNativeStackNavigator();
 
 export const RootStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        header: () => null,
+      }}>
       <Stack.Screen
         name={RootStackRoutes.Main}
         component={MainStackNavigator}

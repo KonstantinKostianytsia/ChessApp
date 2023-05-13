@@ -7,7 +7,10 @@
       "tests": ["tests/*"],
       "components/*": ["src/components/*"],
       "screens/*": ["src/screens/*"],
-      "navigation/*": ["src/navigation/*"]
+      "navigation/*": ["src/navigation/*"],
+      "models/*": ["src/models/*"],
+      "styles/*": ["src/styles/*"],
+      "helpers/*": ["src/helpers/*"]
     }
   }
 }
