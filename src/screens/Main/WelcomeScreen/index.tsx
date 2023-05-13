@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Dimensions, View} from 'react-native';
 
 import BackgroundColor from 'components/atoms/BackgroundColor';
 import {useTheme} from 'helpers /hooks/useTheme';
 import Board from 'components/organizms/Board';
 import {styles} from './styles';
+import ColorPickerModal from 'components/organizms/ColorPickerModal';
 
 const dimensions = Dimensions.get('window');
 
@@ -13,11 +14,31 @@ const BOARD_SIZE = dimensions.width - BOARD_MARGIN_HORIZONTAL;
 
 const WelcomeScreen = () => {
   const theme = useTheme();
+  const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+
+  const closeColorPicker = () => {
+    setIsColorPickerVisible(false);
+  };
+  const openColorPicker = () => {
+    setIsColorPickerVisible(true);
+  };
+
+  const renderColorPickerModal = () => {
+    return (
+      <ColorPickerModal
+        visible={isColorPickerVisible}
+        onColorChangeComplete={color => {
+          closeColorPicker();
+        }}
+      />
+    );
+  };
 
   const renderBoard = () => {
     return (
       <Board
         onPressCell={(row, column) => {
+          openColorPicker();
           console.log(row, column);
         }}
       />
@@ -34,6 +55,7 @@ const WelcomeScreen = () => {
           width: BOARD_SIZE,
         }}>
         {renderBoard()}
+        {renderColorPickerModal()}
       </View>
     </BackgroundColor>
   );
