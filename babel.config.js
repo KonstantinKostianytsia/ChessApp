@@ -14,6 +14,7 @@ module.exports = {
           models: './src/models',
           styles: './src/styles',
           helpers: './src/helpers',
+          stores: './src/stores',
         },
       },
     ],

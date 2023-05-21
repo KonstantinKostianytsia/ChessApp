@@ -10,7 +10,8 @@
       "navigation/*": ["src/navigation/*"],
       "models/*": ["src/models/*"],
       "styles/*": ["src/styles/*"],
-      "helpers/*": ["src/helpers/*"]
+      "helpers/*": ["src/helpers/*"],
+      "stores/*": ["src/stores/*"]
     }
   }
 }

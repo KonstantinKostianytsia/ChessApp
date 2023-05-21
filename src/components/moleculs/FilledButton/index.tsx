@@ -1,6 +1,7 @@
 import CustomButton, {CustomButtonProps} from 'components/atoms/CustomButton';
+import {DEFAULT_BUTTON_HEIGHT} from 'constants/CommonConstants';
 import React from 'react';
-import {StyleSheet} from 'react-native/types';
+import {StyleSheet} from 'react-native';
 
 interface FilledButtonProps extends CustomButtonProps {
   backgroundColor: string;
@@ -9,8 +10,14 @@ interface FilledButtonProps extends CustomButtonProps {
 const FilledButton = (props: FilledButtonProps) => {
   return (
     <CustomButton
-      style={[styles.containerStyles, {backgroundColor: props.backgroundColor}]}
-      {...props}>
+      {...props}
+      style={[
+        styles.containerStyles,
+        {
+          backgroundColor: props.backgroundColor,
+        },
+        props.style,
+      ]}>
       {props.children}
     </CustomButton>
   );
@@ -18,8 +25,8 @@ const FilledButton = (props: FilledButtonProps) => {
 
 const styles = StyleSheet.create({
   containerStyles: {
-    flex: 1,
     width: '100%',
+    height: DEFAULT_BUTTON_HEIGHT,
   },
 });
 

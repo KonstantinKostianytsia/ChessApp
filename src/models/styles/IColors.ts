@@ -4,4 +4,8 @@ export interface IColors {
   black: string;
   borderColor: string;
   textColor: string;
+  buttonBackground: string;
+  viewBackgroundColor: string;
+  darkGreyText: string;
+  selectedListItem: string;
 }

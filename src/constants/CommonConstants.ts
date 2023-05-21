@@ -1,0 +1,2 @@
+export const DEFAULT_BUTTON_HEIGHT = 50;
+export const DEFAULT_BUTTON_BORDER_WIDTH = 1;
