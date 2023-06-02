@@ -5,27 +5,42 @@ import {
   NativeEventEmitter,
   EmitterSubscription,
 } from 'react-native';
+import {BleManager} from 'react-native-ble-plx';
 
 import {
   IBluetoothDeviceResponse,
   IBluetoothService,
 } from 'models/services/IBluetoothService';
-import {requestLocationPermissions} from 'helpers /permissionsHelpers';
+import {
+  requestBluetoothConnect,
+  requestLocationPermissions,
+  requestScanBluetoothDevices,
+} from 'helpers/permissionsHelpers';
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
 import {SCANNING_TIME} from 'constants/BluetoothConstants';
 import {mapBluetoothDeviceResponse} from 'mappers/BluetoothMappers';
+import {mapPeripheralToIDeviceInfo} from 'helpers/mappers/RNBleManagerMapper';
+import BufferService from './BufferService';
 
 const BleManagerModule = NativeModules.BleManager;
 const BleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export class BluetoothService implements IBluetoothService {
   private isScaning: boolean = false;
+  private manager;
 
+  constructor() {
+    this.manager = new BleManager();
+  }
   init = async () => {
     try {
       /// For Android version 31+ location permissions are not needed and it fails silently
       if (Platform.OS === 'android' && Platform.Version <= 30) {
         await requestLocationPermissions();
+      }
+      if (Platform.OS === 'android') {
+        await requestScanBluetoothDevices();
+        await requestBluetoothConnect();
       }
     } catch (err) {
       console.log(err);
@@ -48,11 +63,16 @@ export class BluetoothService implements IBluetoothService {
   };
 
   connect = async (id: string): Promise<void> => {
-    return await RNBleManager.connect(id);
+    const services = await this.manager.connectToDevice(id, {
+      autoConnect: true,
+    });
+    console.log('DEVICE Service', services);
+    await this.manager.discoverAllServicesAndCharacteristicsForDevice(id);
   };
 
   disconnect = async (id: string): Promise<void> => {
-    return await RNBleManager.disconnect(id, false);
+    await this.manager.cancelDeviceConnection(id);
+    return;
   };
 
   enableBluetooth = async (): Promise<any> => {
@@ -66,20 +86,55 @@ export class BluetoothService implements IBluetoothService {
 
   getConnectedPeripherals = async () => {
     const result = await RNBleManager.getConnectedPeripherals();
-    const formatterResults = result.map<IDeviceInfo>(item => ({
-      udid: item.id,
-      name: item.name || '',
-    }));
+    const formatterResults = result.map<IDeviceInfo>(
+      mapPeripheralToIDeviceInfo,
+    );
     return formatterResults;
   };
 
   getDiscoveredPeripherals = async () => {
-    const result = await RNBleManager.getDiscoveredPeripherals();
-    const formatterResults = result.map<IDeviceInfo>(item => ({
-      udid: item.id,
-      name: item.name || '',
-    }));
+    let result = await RNBleManager.getDiscoveredPeripherals();
+    result = result.filter(value => value.advertising.isConnectable);
+    const formatterResults = result.map<IDeviceInfo>(
+      mapPeripheralToIDeviceInfo,
+    );
     return formatterResults;
+  };
+
+  writeMessage = async (
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    message: string,
+  ) => {
+    const formatterData = BufferService.convertStringToBase64(message);
+    const result = await this.manager.writeCharacteristicWithResponseForDevice(
+      peripheralId,
+      serviceUUID,
+      characteristicUUID,
+      formatterData,
+    );
+    console.log(result);
+    return;
+  };
+
+  // readMessage = async (
+  //   peripheralId: string,
+  //   serviceUUID: string,
+  //   characteristicUUID: string,
+  // ): Promise<string> => {
+  // };
+
+  // startNotification = async (
+  //   peripheralId: string,
+  //   serviceUUID: string,
+  //   characteristicUUID: string,
+  //   callback: BluetoothNotificationCallback,
+  // ) => {
+  // };
+
+  isConnected = async (deviceId: string): Promise<boolean> => {
+    return await RNBleManager.isPeripheralConnected(deviceId);
   };
 
   setOnStopScanning = (callback: () => void): EmitterSubscription => {
@@ -95,7 +150,7 @@ export class BluetoothService implements IBluetoothService {
 
   setOnFindDevice = (callback: (device: IDeviceInfo) => void) => {
     const storListener = BleManagerEmitter.addListener(
-      'BleManagerStopScan',
+      'BleManagerDiscoverPeripheral',
       (arg: IBluetoothDeviceResponse) => {
         /// it may return not device
         if (arg.id) {

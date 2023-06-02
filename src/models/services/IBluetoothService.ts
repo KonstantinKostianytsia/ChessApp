@@ -3,8 +3,23 @@ import {EmitterSubscription} from 'react-native';
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
 
 export interface IBluetoothService {
-  // sendMessage: (message: string) => void;
-  // receiveMessage: () => Promise<string>;
+  writeMessage: (
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    message: string,
+  ) => void;
+  // readMessage: (
+  //   peripheralId: string,
+  //   serviceUUID: string,
+  //   characteristicUUID: string,
+  // ) => Promise<string>;
+  // startNotification: (
+  //   peripheralId: string,
+  //   serviceUUID: string,
+  //   characteristicUUID: string,
+  //   callback: BluetoothNotificationCallback,
+  // ) => {};
   init: () => Promise<any>;
   connect: (id: string) => Promise<void>;
   disconnect: (id: string) => Promise<void>;
@@ -12,11 +27,17 @@ export interface IBluetoothService {
   getDiscoveredPeripherals: () => Promise<IDeviceInfo[]>;
   scan: () => Promise<any>;
   enableBluetooth: () => Promise<any>;
+  isConnected: (deviceId: string) => Promise<boolean>;
   setOnStopScanning: (callback: () => void) => EmitterSubscription;
-  setOnFindDevice: (
-    callback: (device: IDeviceInfo) => void,
-  ) => EmitterSubscription;
+  setOnFindDevice: (callback: (device: IDeviceInfo) => void) => any;
 }
+
+export type BluetoothNotificationCallback = (
+  message: string,
+  peripheral: string,
+  characteristic: string,
+  service: string,
+) => void;
 
 export interface IBluetoothDeviceResponse {
   id: string;
@@ -30,4 +51,23 @@ export interface IBluetoothDeviceResponse {
     serviceData: string; ///  contains the raw bytes and data (Base64 encoded string)
     txPowerLevel: number;
   };
+}
+
+export interface IBluetoothServiceInfo {
+  characteristics: Array<ICharacteristic>;
+  services: Array<IService>;
+}
+
+export interface IService {
+  uuid: string;
+}
+
+export interface ICharacteristic {
+  characteristic: string;
+  descriptors: Array<IDescriptor>;
+}
+
+export interface IDescriptor {
+  uuid: string;
+  value: string;
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import {ActivityIndicator, Text, View, ViewStyle} from 'react-native';
 
 import CustomButton from 'components/atoms/CustomButton';
-import {useTheme} from 'helpers /hooks/useTheme';
+import {useTheme} from 'helpers/hooks/useTheme';
 import {styles} from './styles';
 
 export interface RefreshButtonProp {

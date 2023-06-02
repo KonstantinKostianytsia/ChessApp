@@ -22,3 +22,11 @@ export const convertRowIndexToRow = (rowIndex: number): Row => {
 export const convertColumnIndexToColumn = (columnIndex: number): Column => {
   return COLUMNS_CAPTIONS[columnIndex] as Column;
 };
+
+export const converRowToRowIndex = (row: Row): number => {
+  return ROW_CAPTIONS.length - row;
+};
+
+export const converColumnToColummnIndex = (column: Column): number => {
+  return COLUMNS_CAPTIONS.findIndex((value: string) => value === column);
+};

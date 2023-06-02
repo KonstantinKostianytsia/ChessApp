@@ -4,7 +4,7 @@ import {View, Text} from 'react-native';
 import CustomModal, {CustomModalProps} from 'components/atoms/CustomModal';
 import {styles} from './styles';
 import CustomButton from 'components/atoms/CustomButton';
-import {useTheme} from 'helpers /hooks/useTheme';
+import {useTheme} from 'helpers/hooks/useTheme';
 import Devide from 'components/atoms/Devider';
 
 export interface ModalWithHeaderProp extends CustomModalProps {

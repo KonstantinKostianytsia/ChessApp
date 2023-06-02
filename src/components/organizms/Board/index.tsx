@@ -9,7 +9,7 @@ import {
   getRowCaptionStyles,
   styles,
 } from './styles';
-import {useTheme} from 'helpers /hooks/useTheme';
+import {useTheme} from 'helpers/hooks/useTheme';
 import {BOARD_CELLS_PADDINGS, COLUMNS_CAPTIONS} from 'constants/BoardConstants';
 import {ROW_CAPTIONS} from 'constants/BoardConstants';
 import BoardCell from 'components/moleculs/BoardCell';
@@ -17,12 +17,13 @@ import {
   convertColumnIndexToColumn,
   convertRowIndexToRow,
   getCellColor,
-} from 'helpers /boardHelpers';
-import {CellColor} from 'models/boardModels/Board';
-import {BoardValidator} from 'helpers /validator/BoardValidator';
+} from 'helpers/boardHelpers';
+import {BoardState, CellColor} from 'models/boardModels/Board';
+import {BoardValidator} from 'helpers/validator/BoardValidator';
 
 export interface BoardProps {
   onPressCell: (row: Row, column: Column) => void;
+  boardState?: BoardState;
 }
 
 const Board = (props: BoardProps) => {
@@ -47,6 +48,10 @@ const Board = (props: BoardProps) => {
         ///
         const renderCell = (row: number, column: number) => {
           ///
+          const cellState =
+            props.boardState && props.boardState.length > 0
+              ? props.boardState[row][column]
+              : undefined;
           const color = getCellColor(row, column);
           const onPressCell = () => {
             const boardValidator = new BoardValidator(rowIndex, column);
@@ -60,6 +65,7 @@ const Board = (props: BoardProps) => {
           };
           return (
             <BoardCell
+              cellState={cellState}
               onPressCell={onPressCell}
               color={
                 color === CellColor.White

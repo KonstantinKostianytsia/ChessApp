@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from 'react-native-modal';
 import {ViewStyle, View} from 'react-native';
-import {useTheme} from 'helpers /hooks/useTheme';
+import {useTheme} from 'helpers/hooks/useTheme';
 import {styles} from './styles';
 
 export type CustomModalAnimationTypes = 'fade';

@@ -11,7 +11,10 @@ export interface ColorPickerModalProps extends ExtendType {}
 
 const ColorPickerModal = (props: ColorPickerModalProps) => {
   return (
-    <CustomModal animationType={props.animationType} visible={props.visible}>
+    <CustomModal
+      contentStyles={{flex: 1}}
+      animationType={props.animationType}
+      visible={props.visible}>
       <CustomColorPicker
         onColorChange={props.onColorChange}
         onColorChangeComplete={props.onColorChangeComplete}
