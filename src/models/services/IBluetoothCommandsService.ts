@@ -1,4 +1,4 @@
-import {CellDataType} from 'models/boardModels/Board';
+import {CellDataType, UpdateCellState} from 'models/boardModels/Board';
 
 export interface IBluetoothCommandsService {
   /*
@@ -8,6 +8,7 @@ export interface IBluetoothCommandsService {
     cellState: CellDataType[] | CellDataType,
     flags?: CommandFlag[],
   ) => string;
+  parseBoardFigureState: (boardStateStr: string) => Array<UpdateCellState>;
 }
 
 export type CommandFlag = 'reset';

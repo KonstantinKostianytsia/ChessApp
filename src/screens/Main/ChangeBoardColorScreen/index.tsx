@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Dimensions, View} from 'react-native';
+import {Observer} from 'mobx-react';
 
 import BackgroundColor from 'components/atoms/BackgroundColor';
 import {useTheme} from 'helpers/hooks/useTheme';
@@ -9,6 +10,8 @@ import ColorPickerModal from 'components/organizms/ColorPickerModal';
 import {useBluetoothDevicesStore, useBoardStore} from 'helpers/hooks/useStore';
 import {IBluetoothCommandsService} from 'models/services/IBluetoothCommandsService';
 import {BluetoothCommandsService} from 'services/BluetoothCommandsService';
+import {UNHANDLED_INNER_ERROR} from 'constants/ErrorConstants';
+import BufferService from 'services/BufferService';
 
 const dimensions = Dimensions.get('window');
 
@@ -25,6 +28,20 @@ const ChangeBoardColorScreen = () => {
 
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
+  useEffect(() => {
+    const removeListener = bluetoothStore.setOnBoardStateMessage(message => {
+      const stateString = BufferService.convertBase64ToString(message);
+      const updateBoardState =
+        commandFormatterService.parseBoardFigureState(stateString);
+      boardStore.updateCellsState(updateBoardState);
+    });
+
+    return () => {
+      removeListener.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const closeColorPicker = () => {
     setIsColorPickerVisible(false);
   };
@@ -35,7 +52,14 @@ const ChangeBoardColorScreen = () => {
   const renderColorPickerModal = () => {
     const onSelectColor = (color: string) => {
       if (boardStore.currentCellCoord) {
-        boardStore.updateCellColor(color, boardStore.currentCellCoord);
+        boardStore.updateCellsState([
+          {
+            cellState: {
+              cellRGBColor: color,
+            },
+            cellCoords: boardStore.currentCellCoord,
+          },
+        ]);
         bluetoothStore
           .sendMessageToConnectedDevice(
             commandFormatterService.convertCellState({
@@ -49,6 +73,8 @@ const ChangeBoardColorScreen = () => {
           .finally(() => {
             closeColorPicker();
           });
+      } else {
+        throw Error(UNHANDLED_INNER_ERROR);
       }
     };
     return (
@@ -72,20 +98,24 @@ const ChangeBoardColorScreen = () => {
   };
 
   return (
-    <BackgroundColor
-      containerStyles={styles.backgroundStyles}
-      backgroundColor={theme.colors.lightGrey}>
-      <>
-        <View
-          style={{
-            height: BOARD_SIZE,
-            width: BOARD_SIZE,
-          }}>
-          {renderBoard()}
-        </View>
-        {renderColorPickerModal()}
-      </>
-    </BackgroundColor>
+    <Observer>
+      {() => (
+        <BackgroundColor
+          containerStyles={styles.backgroundStyles}
+          backgroundColor={theme.colors.lightGrey}>
+          <>
+            <View
+              style={{
+                height: BOARD_SIZE,
+                width: BOARD_SIZE,
+              }}>
+              {renderBoard()}
+            </View>
+            {renderColorPickerModal()}
+          </>
+        </BackgroundColor>
+      )}
+    </Observer>
   );
 };
 

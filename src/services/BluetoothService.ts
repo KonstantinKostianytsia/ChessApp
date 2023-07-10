@@ -5,7 +5,7 @@ import {
   NativeEventEmitter,
   EmitterSubscription,
 } from 'react-native';
-import {BleManager} from 'react-native-ble-plx';
+import {BleError, BleManager, Characteristic} from 'react-native-ble-plx';
 
 import {
   IBluetoothDeviceResponse,
@@ -17,10 +17,20 @@ import {
   requestScanBluetoothDevices,
 } from 'helpers/permissionsHelpers';
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
-import {SCANNING_TIME} from 'constants/BluetoothConstants';
-import {mapBluetoothDeviceResponse} from 'mappers/BluetoothMappers';
+import {
+  MESSAGE_BYTES_LENGTH,
+  SCANNING_TIME,
+} from 'constants/BluetoothConstants';
+import {
+  mapBleErrorPlxToBluetoothError,
+  mapBluetoothDeviceResponse,
+} from 'mappers/BluetoothMappers';
 import {mapPeripheralToIDeviceInfo} from 'helpers/mappers/RNBleManagerMapper';
 import BufferService from './BufferService';
+import {
+  BluetoothError,
+  BluetoothErrorType,
+} from 'models/services/BluetoothErrors';
 
 const BleManagerModule = NativeModules.BleManager;
 const BleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -65,6 +75,7 @@ export class BluetoothService implements IBluetoothService {
   connect = async (id: string): Promise<void> => {
     const services = await this.manager.connectToDevice(id, {
       autoConnect: true,
+      requestMTU: MESSAGE_BYTES_LENGTH,
     });
     console.log('DEVICE Service', services);
     await this.manager.discoverAllServicesAndCharacteristicsForDevice(id);
@@ -125,16 +136,34 @@ export class BluetoothService implements IBluetoothService {
   // ): Promise<string> => {
   // };
 
-  // startNotification = async (
-  //   peripheralId: string,
-  //   serviceUUID: string,
-  //   characteristicUUID: string,
-  //   callback: BluetoothNotificationCallback,
-  // ) => {
-  // };
-
   isConnected = async (deviceId: string): Promise<boolean> => {
     return await RNBleManager.isPeripheralConnected(deviceId);
+  };
+
+  monitorCharacteristics = (
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    listener: (error?: BluetoothError, value?: string) => void,
+  ) => {
+    const handledListener = (
+      error: BleError | null,
+      characteristic: Characteristic | null,
+    ) => {
+      if (error) {
+        listener(mapBleErrorPlxToBluetoothError(error));
+      }
+      if (characteristic) {
+        listener(undefined, characteristic.value || undefined);
+      }
+    };
+    const removeListener = this.manager.monitorCharacteristicForDevice(
+      peripheralId,
+      serviceUUID,
+      characteristicUUID,
+      handledListener,
+    );
+    return removeListener as EmitterSubscription;
   };
 
   setOnStopScanning = (callback: () => void): EmitterSubscription => {

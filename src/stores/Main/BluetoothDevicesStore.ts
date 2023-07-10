@@ -1,5 +1,13 @@
 import {makeAutoObservable} from 'mobx';
+
+import {
+  BLUETOOTH_SERVICE_ID,
+  READ_BOARD_STATE_CHARACTERISTIC,
+  WRITE_COLOR_CHARACTERISTIC,
+} from 'constants/BluetoothConstants';
+import {UNHANDLED_INNER_ERROR} from 'constants/ErrorConstants';
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
+import {BluetoothError} from 'models/services/BluetoothErrors';
 import {IBluetoothService} from 'models/services/IBluetoothService';
 
 const WAIT_UNTIL_CONNECTING_FINISHING = 'WAIT_UNTIL_CONNECTING_FINISHING';
@@ -97,21 +105,6 @@ export class BluetoothDevicesStore {
     return;
   };
 
-  public setOnStopScanningLister = (callback: () => void) => {
-    return this.bluetoothService.setOnStopScanning(() => {
-      this.setIsScanning(false);
-      callback();
-    });
-  };
-
-  public setOnFindDeviceListener = (
-    callback: (device: IDeviceInfo) => void,
-  ) => {
-    return this.bluetoothService.setOnFindDevice((device: IDeviceInfo) => {
-      callback(device);
-    });
-  };
-
   public fetchConnectedDevices = async () => {
     const result = await this.bluetoothService.getConnectedPeripherals();
     if (result.length > 0) {
@@ -130,12 +123,53 @@ export class BluetoothDevicesStore {
     if (this.connectedDevice) {
       await this.bluetoothService.writeMessage(
         this.connectedDevice.udid,
-        '5f47f8ff-fbb4-47d4-ac92-8520ef9fed17',
-        '17e8a436-de30-47dd-bfb8-baf4d82afbdb',
+        BLUETOOTH_SERVICE_ID,
+        WRITE_COLOR_CHARACTERISTIC,
         message,
       );
     } else {
       throw Error(THERE_IS_NO_CONNECTED_DEVICE);
+    }
+  };
+
+  public setOnStopScanningLister = (callback: () => void) => {
+    return this.bluetoothService.setOnStopScanning(() => {
+      this.setIsScanning(false);
+      callback();
+    });
+  };
+
+  public setOnFindDeviceListener = (
+    callback: (device: IDeviceInfo) => void,
+  ) => {
+    return this.bluetoothService.setOnFindDevice((device: IDeviceInfo) => {
+      callback(device);
+    });
+  };
+
+  public setOnBoardStateMessage = (callback: (boardState: string) => void) => {
+    const monitorCallback = (
+      error?: BluetoothError | undefined,
+      value?: string | undefined,
+    ) => {
+      if (error) {
+        throw Error(error.message);
+      } else {
+        if (value) {
+          callback(value);
+        }
+      }
+    };
+
+    if (this.connectedDevice) {
+      return this.bluetoothService.monitorCharacteristics(
+        this.connectedDevice.udid,
+        BLUETOOTH_SERVICE_ID,
+        READ_BOARD_STATE_CHARACTERISTIC,
+        monitorCallback,
+      );
+    } else {
+      throw Error(UNHANDLED_INNER_ERROR);
     }
   };
 }

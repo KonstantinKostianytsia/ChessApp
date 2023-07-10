@@ -16,8 +16,14 @@ const convertStringToBase64 = (str: string) => {
   return data.toString('base64');
 };
 
+const convertBase64ToString = (str: string) => {
+  const data = Buffer.from(str, 'base64');
+  return data.toString('ascii');
+};
+
 export default {
   convertStringToBytes,
   getStringFromBytes,
   convertStringToBase64,
+  convertBase64ToString,
 };

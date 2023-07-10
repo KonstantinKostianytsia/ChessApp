@@ -1,0 +1,2 @@
+export const CHARACTER_TO_SEPARATE_COMMANDS = ';';
+export const CHARACTER_TO_SEPARATE_FIELDS = '_';

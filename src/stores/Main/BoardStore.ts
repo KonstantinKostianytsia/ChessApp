@@ -1,7 +1,11 @@
 import {makeAutoObservable} from 'mobx';
 
 import {DEFAULT_BOARD_SIZE} from 'constants/BoardConstants';
-import {BoardCellCoord, BoardState} from 'models/boardModels/Board';
+import {
+  BoardCellCoord,
+  BoardState,
+  UpdateCellState,
+} from 'models/boardModels/Board';
 import {
   converColumnToColummnIndex,
   converRowToRowIndex,
@@ -21,6 +25,15 @@ export class BoardStore {
 
   private setBoardState = (value: BoardState) => {
     this.boardState = value;
+  };
+
+  private getBoardDeepCopy = () => {
+    const boardStateCopy = [];
+    for (let i = 0; i < this.boardState.length; ++i) {
+      const rowCopy = [...this.boardState[i]];
+      boardStateCopy.push(rowCopy);
+    }
+    return boardStateCopy;
   };
 
   public setCurrentCellCoord = (value: BoardCellCoord) => {
@@ -54,16 +67,28 @@ export class BoardStore {
     this.emptyBoard();
   };
 
-  public updateCellColor = (color: string, cellCoord: BoardCellCoord) => {
+  public updateCellsState = (cellsData: Array<UpdateCellState>) => {
     if (!this.boardState) {
       throw Error(BOARD_IS_NOT_INITIALIZED);
     }
-    const rowIndex = converRowToRowIndex(cellCoord.row);
-    const columnIndex = converColumnToColummnIndex(cellCoord.column);
+    const boardStateCopy = this.getBoardDeepCopy();
 
-    const rowCopy = [...this.boardState[rowIndex]];
-    rowCopy[columnIndex] = {cellRGBColor: color};
+    for (const cellState of cellsData) {
+      const rowIndex = converRowToRowIndex(cellState.cellCoords.row);
+      const columnIndex = converColumnToColummnIndex(
+        cellState.cellCoords.column,
+      );
 
-    this.boardState[rowIndex] = rowCopy;
+      if (boardStateCopy[rowIndex][columnIndex]) {
+        boardStateCopy[rowIndex][columnIndex] = {
+          ...boardStateCopy[rowIndex][columnIndex],
+          ...cellState.cellState,
+        };
+      } else {
+        boardStateCopy[rowIndex][columnIndex] = cellState.cellState;
+      }
+    }
+
+    this.setBoardState(boardStateCopy);
   };
 }

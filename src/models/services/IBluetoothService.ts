@@ -1,6 +1,7 @@
 import {EmitterSubscription} from 'react-native';
 
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
+import {BluetoothError} from './BluetoothErrors';
 
 export interface IBluetoothService {
   writeMessage: (
@@ -29,7 +30,15 @@ export interface IBluetoothService {
   enableBluetooth: () => Promise<any>;
   isConnected: (deviceId: string) => Promise<boolean>;
   setOnStopScanning: (callback: () => void) => EmitterSubscription;
-  setOnFindDevice: (callback: (device: IDeviceInfo) => void) => any;
+  setOnFindDevice: (
+    callback: (device: IDeviceInfo) => void,
+  ) => EmitterSubscription;
+  monitorCharacteristics: (
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    listener: (error?: BluetoothError, value?: string) => void,
+  ) => EmitterSubscription;
 }
 
 export type BluetoothNotificationCallback = (

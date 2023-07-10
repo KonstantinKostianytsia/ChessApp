@@ -1,8 +1,14 @@
 import {
+  CHARACTER_TO_SEPARATE_COMMANDS,
+  CHARACTER_TO_SEPARATE_FIELDS,
+} from 'constants/CommandsConstants';
+import {
   converColumnToColummnIndex,
   converRowToRowIndex,
+  convertColumnIndexToColumn,
+  convertRowIndexToRow,
 } from 'helpers/boardHelpers';
-import {CellDataType} from 'models/boardModels/Board';
+import {CellDataType, UpdateCellState} from 'models/boardModels/Board';
 import {
   CommandFlag,
   IBluetoothCommandsService,
@@ -12,7 +18,9 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
   private convertCellDataToString = (cellData: CellDataType): string => {
     return `${cellData.cellRGBColor}_${converRowToRowIndex(
       cellData.row,
-    )}_${converColumnToColummnIndex(cellData.column)}`;
+    )}${CHARACTER_TO_SEPARATE_FIELDS}${converColumnToColummnIndex(
+      cellData.column,
+    )}`;
   };
 
   private convertCommandFlagToString = (flag: CommandFlag) => {
@@ -30,6 +38,14 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
     commandString += flagsString;
   };
 
+  private splitStringByCommands = (commandString: string) => {
+    return commandString.split(CHARACTER_TO_SEPARATE_COMMANDS);
+  };
+
+  private splitCommandByFields = (commandString: string) => {
+    return commandString.split(CHARACTER_TO_SEPARATE_FIELDS);
+  };
+
   public convertCellState = (
     cellState: CellDataType | CellDataType[],
     flags?: CommandFlag[],
@@ -40,7 +56,7 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
         const isTheLast = index === cellState.length - 1;
         returnCommandString += this.convertCellDataToString(item);
         if (!isTheLast) {
-          returnCommandString += ';';
+          returnCommandString += CHARACTER_TO_SEPARATE_COMMANDS;
         }
       });
     } else {
@@ -52,5 +68,27 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
     }
 
     return returnCommandString;
+  };
+
+  public parseBoardFigureState = (
+    boardStateStr: string,
+  ): Array<UpdateCellState> => {
+    const result: Array<UpdateCellState> = [];
+    const commandsArray = this.splitStringByCommands(boardStateStr);
+    for (const command of commandsArray) {
+      const commandFields = this.splitCommandByFields(command);
+      const updateCellStateValue: UpdateCellState = {
+        cellCoords: {
+          row: convertRowIndexToRow(parseInt(commandFields[0])),
+          column: convertColumnIndexToColumn(parseInt(commandFields[1])),
+        },
+        cellState: {
+          cellValue: parseInt(commandFields[2]),
+        },
+      };
+      result.push(updateCellStateValue);
+    }
+
+    return result;
   };
 }

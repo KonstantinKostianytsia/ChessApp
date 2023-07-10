@@ -1,4 +1,5 @@
 import {Column} from './Column';
+import {Figure} from './Figure';
 import {Row} from './Row';
 
 export enum CellColor {
@@ -13,6 +14,13 @@ export interface BoardCellCoord {
 
 export interface CellStateType {
   cellRGBColor?: string;
+  cellFigure?: Figure;
+  cellValue?: number;
+}
+
+export interface UpdateCellState {
+  cellState: CellStateType;
+  cellCoords: BoardCellCoord;
 }
 
 export type CellDataType = BoardCellCoord & CellStateType;

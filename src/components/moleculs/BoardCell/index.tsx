@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 
 import CustomButton from 'components/atoms/CustomButton';
 import {
@@ -16,15 +16,18 @@ export interface BoardCellProps {
 }
 
 const BoardCell = (props: BoardCellProps) => {
-  const renderCellLEDColor = (LEDColor: string) => {
-    return <View style={getBoardLEDColorStyles(LEDColor)} />;
+  const renderCell = () => {
+    return (
+      <View style={getBoardLEDColorStyles(props.cellState?.cellRGBColor)}>
+        <Text>{props.cellState?.cellValue}</Text>
+      </View>
+    );
   };
   return (
     <CustomButton
       onPress={props.onPressCell}
       style={getBoardCellMainContainerStyles(props.color, props.size)}>
-      {props.cellState?.cellRGBColor &&
-        renderCellLEDColor(props.cellState.cellRGBColor)}
+      {renderCell()}
     </CustomButton>
   );
 };
