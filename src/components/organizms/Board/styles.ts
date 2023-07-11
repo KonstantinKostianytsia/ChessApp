@@ -1,4 +1,3 @@
-import {BOARD_CELLS_PADDINGS} from 'constants/BoardConstants';
 import {StyleSheet} from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -16,38 +15,11 @@ export const styles = StyleSheet.create({
     width: '100%',
     position: 'absolute',
   },
-  boardRowContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowCaptionStyle: {
-    position: 'absolute',
-  },
   cellsContainerStyles: {
     flex: 1,
     borderWidth: 1,
     width: '100%',
   },
-  cellsWraper: {
-    flex: 1,
-    width: '100%',
-    flexDirection: 'row',
-    height: '100%',
-  },
-});
-
-export const getRowCaptionStyles = (
-  color: string,
-  captionsPaddings: number,
-  isRightCaptions?: boolean,
-) => ({
-  ...styles.rowCaptionStyle,
-  color,
-  right: isRightCaptions ? -1 * captionsPaddings : undefined,
-  left: !isRightCaptions ? -1 * captionsPaddings : undefined,
 });
 
 export const getCellsContainerStyles = (
@@ -59,13 +31,16 @@ export const getCellsContainerStyles = (
   borderColor,
 });
 
-export const getColumnsCaptionContainerStyles = (isTop?: boolean) => {
-  return [
-    styles.boardColumnsCaptions,
-    {
-      left: BOARD_CELLS_PADDINGS,
-      top: isTop ? 0 : undefined,
-      bottom: !isTop ? 0 : undefined,
-    },
-  ];
-};
+export const getBoardMainContainer = (
+  padding: number,
+  borderColor: string,
+  backgroundColor: string,
+) => [
+  styles.mainBoardContainer,
+  {
+    paddingHorizontal: padding,
+    paddingVertical: padding,
+    borderColor,
+    backgroundColor,
+  },
+];
