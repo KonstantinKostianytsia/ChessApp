@@ -1,5 +1,5 @@
 import {Column} from './Column';
-import {Figure} from './Figure';
+import {ChessFigure} from './ChessFigure';
 import {Row} from './Row';
 
 export enum CellColor {
@@ -14,8 +14,13 @@ export interface BoardCellCoord {
 
 export interface CellStateType {
   cellRGBColor?: string;
-  cellFigure?: Figure;
   cellValue?: number;
+}
+
+/// A cell with chess figure
+/// TODO Consider removing cellValue
+export interface CellWithChessFigureStateType extends CellStateType {
+  cellChessFigure: ChessFigure;
 }
 
 export interface UpdateCellState {
@@ -26,3 +31,6 @@ export interface UpdateCellState {
 export type CellDataType = BoardCellCoord & CellStateType;
 
 export type BoardState = Array<Array<CellStateType | undefined>>;
+export type BoardWithChessFigureState = Array<
+  Array<CellWithChessFigureStateType | undefined>
+>;

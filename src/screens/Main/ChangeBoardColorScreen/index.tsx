@@ -39,6 +39,8 @@ const ChangeBoardColorScreen = () => {
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
   useEffect(() => {
+    /// Different modes can be handled here. Just add expression where you want to add data
+    /// and call updateCellsState with new formatted data
     const removeListener = bluetoothStore.setOnBoardStateMessage(message => {
       const stateString = BufferService.convertBase64ToString(message);
       const updateBoardState =

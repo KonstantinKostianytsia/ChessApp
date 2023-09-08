@@ -53,7 +53,8 @@ export class BluetoothService implements IBluetoothService {
         await requestBluetoothConnect();
       }
     } catch (err) {
-      console.log(err);
+      console.warn(err);
+      throw err;
     }
     return await RNBleManager.start({showAlert: true});
   };

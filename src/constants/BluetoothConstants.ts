@@ -1,5 +1,5 @@
 export const SCANNING_TIME = 10; // seconds
-export const MESSAGE_BYTES_LENGTH = 200;
+export const MESSAGE_BYTES_LENGTH = 515;
 
 export const WRITE_COLOR_CHARACTERISTIC =
   '17e8a436-de30-47dd-bfb8-baf4d82afbdb';

@@ -19,7 +19,7 @@ export const getBoardCellMainContainerStyles = (
   ...styles.boardCellMainContainer,
 });
 
-export const getBoardLEDColorStyles = (LEDColor: string) => ({
+export const getBoardLEDColorStyles = (LEDColor?: string) => ({
   ...styles.boardLEDColorStyles,
   backgroundColor: LEDColor,
 });

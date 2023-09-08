@@ -1,9 +1,9 @@
-export enum FigureColor {
+export enum ChessFigureColor {
   Black = 'Black',
   White = 'White',
 }
 
-export enum FigureType {
+export enum ChessFigureType {
   King = 'King',
   Queen = 'Queen',
   Rook = 'Rook',
@@ -12,11 +12,11 @@ export enum FigureType {
   Pawn = 'Pawn',
 }
 
-export class Figure {
-  color: FigureColor;
-  figureType: FigureType;
+export class ChessFigure {
+  color: ChessFigureColor;
+  figureType: ChessFigureType;
 
-  constructor(color: FigureColor, figureType: FigureType) {
+  constructor(color: ChessFigureColor, figureType: ChessFigureType) {
     this.color = color;
     this.figureType = figureType;
   }

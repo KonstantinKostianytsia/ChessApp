@@ -79,11 +79,11 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
       const commandFields = this.splitCommandByFields(command);
       const updateCellStateValue: UpdateCellState = {
         cellCoords: {
-          row: convertRowIndexToRow(parseInt(commandFields[0])),
-          column: convertColumnIndexToColumn(parseInt(commandFields[1])),
+          row: convertRowIndexToRow(parseInt(commandFields[0], 10)),
+          column: convertColumnIndexToColumn(parseInt(commandFields[1], 10)),
         },
         cellState: {
-          cellValue: parseInt(commandFields[2]),
+          cellValue: parseInt(commandFields[2], 10),
         },
       };
       result.push(updateCellStateValue);
