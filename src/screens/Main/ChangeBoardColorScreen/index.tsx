@@ -41,16 +41,20 @@ const ChangeBoardColorScreen = () => {
   useEffect(() => {
     /// Different modes can be handled here. Just add expression where you want to add data
     /// and call updateCellsState with new formatted data
-    const removeListener = bluetoothStore.setOnBoardStateMessage(message => {
-      const stateString = BufferService.convertBase64ToString(message);
-      const updateBoardState =
-        commandFormatterService.parseBoardFigureState(stateString);
-      boardStore.updateCellsState(updateBoardState);
-    });
-
-    return () => {
-      removeListener.remove();
-    };
+    try {
+      const removeListener = bluetoothStore.setOnBoardStateMessage(message => {
+        const stateString = BufferService.convertBase64ToString(message);
+        const updateBoardState =
+          commandFormatterService.parseBoardFigureState(stateString);
+        boardStore.updateCellsState(updateBoardState);
+      });
+      return () => {
+        removeListener.remove();
+      };
+    } catch (err) {
+      /// Work around error message should be display. User should stay on the Welcome screen.
+      console.log(err);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -93,6 +97,7 @@ const ChangeBoardColorScreen = () => {
       <ColorPickerModal
         visible={isColorPickerVisible}
         onColorChangeComplete={onSelectColor}
+        onPressCancel={closeColorPicker}
       />
     );
   };

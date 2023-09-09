@@ -16,6 +16,8 @@ import {ModalWithHeader} from 'components/moleculs/ModalWithHeader';
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
 import {useBluetoothDevicesStore} from 'helpers/hooks/useStore';
 import RefreshButton from 'components/moleculs/RefreshButton';
+import {IAlertsService} from 'models/services/IAlertsService';
+import {RNAlertsService} from 'services/RNAlertsService';
 
 type WelcomeScreenNavigatioProp = NativeStackNavigationProp<
   MainStackParamList,
@@ -23,6 +25,8 @@ type WelcomeScreenNavigatioProp = NativeStackNavigationProp<
 >;
 
 const WelcomeScreen = () => {
+  const alertsService: IAlertsService = new RNAlertsService();
+
   const theme = useTheme();
   const bluetoothDevicesStore = useBluetoothDevicesStore();
   const navigation = useNavigation<WelcomeScreenNavigatioProp>();
@@ -35,7 +39,7 @@ const WelcomeScreen = () => {
       console.log('PACKAGE INITITALIZED');
       stopListeners.push(
         bluetoothDevicesStore.setOnStopScanningLister(onStopScanning),
-        bluetoothDevicesStore.setOnFindDeviceListener(onFindDevice),
+        // bluetoothDevicesStore.setOnFindDeviceListener(onFindDevice),
       );
     });
 
@@ -53,10 +57,10 @@ const WelcomeScreen = () => {
     });
   };
 
-  const onFindDevice = (device: IDeviceInfo) => {
-    // console.log('Find device');
-    // console.log(device);
-  };
+  // const onFindDevice = (device: IDeviceInfo) => {
+  //   // console.log('Find device');
+  //   // console.log(device);
+  // };
 
   const showDeviceModal = () => {
     setIsDeviceModalVisible(true);
@@ -119,7 +123,7 @@ const WelcomeScreen = () => {
         let message = isConnectedDeviceSelected
           ? 'Are you sure you want to disconnect?'
           : 'Are you sure you want to disconnect and connect to another device?';
-        Alert.alert(message, undefined, [
+        alertsService.showMessage(message, undefined, [
           {
             text: 'OK',
             onPress: () => {
@@ -142,7 +146,7 @@ const WelcomeScreen = () => {
             onPress: () => {
               hideDeviceModal();
             },
-            isPreferred: false,
+            buttonType: 'highligted',
           },
         ]);
       } else {

@@ -1,25 +1,29 @@
 import React from 'react';
 
-import CustomModal, {CustomModalProps} from 'components/atoms/CustomModal';
 import CustomColorPicker, {
   CustomColorPickerProps,
 } from 'components/moleculs/ColorPicker';
+import {
+  ModalWithHeader,
+  ModalWithHeaderProp,
+} from 'components/moleculs/ModalWithHeader';
 
-type ExtendType = Omit<CustomColorPickerProps & CustomModalProps, 'children'>;
+type ExtendType = Omit<
+  CustomColorPickerProps & ModalWithHeaderProp,
+  'children'
+>;
 
 export interface ColorPickerModalProps extends ExtendType {}
 
+/// Static height is requeired by react-native-color-picker
 const ColorPickerModal = (props: ColorPickerModalProps) => {
   return (
-    <CustomModal
-      contentStyles={{flex: 1}}
-      animationType={props.animationType}
-      visible={props.visible}>
+    <ModalWithHeader contentStyles={{height: 500}} {...props}>
       <CustomColorPicker
         onColorChange={props.onColorChange}
         onColorChangeComplete={props.onColorChangeComplete}
       />
-    </CustomModal>
+    </ModalWithHeader>
   );
 };
 
