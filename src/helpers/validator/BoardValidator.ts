@@ -4,16 +4,20 @@ const ROW_INDEX_RANGE_ERROR = 'Row index is not valid should be in range [0,7]';
 const COLUMN_INDEX_RANGE_ERROR =
   'Column index is not valid should be in range [0,7]';
 
-export class BoardValidator implements IValidator {
+export interface IBoardValidator extends IValidator {
+  setCoords: (rowIndex: number, columnIndex: number) => void;
+}
+
+export class BoardValidator implements IBoardValidator {
   private rowIndex: number = -1;
   private columnIndex: number = -1;
 
   private errorList: Array<string> = [];
 
-  constructor(rowIndex: number, columnIndex: number) {
+  setCoords = (rowIndex: number, columnIndex: number) => {
     this.rowIndex = rowIndex;
     this.columnIndex = columnIndex;
-  }
+  };
 
   validate = () => {
     /// column index and row index should not be bigger than 7 and less than 0

@@ -11,7 +11,8 @@
       "models/*": ["src/models/*"],
       "styles/*": ["src/styles/*"],
       "helpers/*": ["src/helpers/*"],
-      "stores/*": ["src/stores/*"]
+      "stores/*": ["src/stores/*"],
+      "assets/*": ["assets/*"]
     }
   }
 }

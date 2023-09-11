@@ -20,7 +20,7 @@ export interface CellStateType {
 /// A cell with chess figure
 /// TODO Consider removing cellValue
 export interface CellWithChessFigureStateType extends CellStateType {
-  cellChessFigure: ChessFigure;
+  cellChessFigure?: ChessFigure;
 }
 
 export interface UpdateCellState {

@@ -10,16 +10,8 @@ import ColorPickerModal from 'components/organizms/ColorPickerModal';
 import {useBluetoothDevicesStore, useBoardStore} from 'helpers/hooks/useStore';
 import {IBluetoothCommandsService} from 'models/services/IBluetoothCommandsService';
 import {BluetoothCommandsService} from 'services/BluetoothCommandsService';
-import {
-  UNHANDLED_INNER_ERROR,
-  VALIDATION_ERROR,
-} from 'constants/ErrorConstants';
+import {UNHANDLED_INNER_ERROR} from 'constants/ErrorConstants';
 import BufferService from 'services/BufferService';
-import {BoardValidator} from 'helpers/validator/BoardValidator';
-import {
-  converColumnToColummnIndex,
-  converRowToRowIndex,
-} from 'helpers/boardHelpers';
 import {Column} from 'models/boardModels/Column';
 import {Row} from 'models/boardModels/Row';
 
@@ -104,18 +96,15 @@ const ChangeBoardColorScreen = () => {
 
   const renderBoard = () => {
     const onPressCell = (row: Row, column: Column) => {
-      const rowIndex = converRowToRowIndex(row);
-      const columnIndex = converColumnToColummnIndex(column);
-      const boardValidator = new BoardValidator(rowIndex, columnIndex);
-      if (boardValidator.validate()) {
-        boardStore.setCurrentCellCoord({row, column});
-        openColorPicker();
-      } else {
-        throw new Error(VALIDATION_ERROR);
-      }
+      boardStore.setCurrentCellCoord({row, column});
+      openColorPicker();
     };
     return (
-      <Board onPressCell={onPressCell} boardState={boardStore.boardState} />
+      <Board
+        boardSize={BOARD_SIZE}
+        onPressCell={onPressCell}
+        boardState={boardStore.boardState}
+      />
     );
   };
 

@@ -10,6 +10,8 @@ import {
   converColumnToColummnIndex,
   converRowToRowIndex,
 } from 'helpers/boardHelpers';
+import {IBoardValidator} from 'helpers/validator/BoardValidator';
+import {VALIDATION_ERROR} from 'constants/ErrorConstants';
 
 const BOARD_ALREADY_EMPTY = 'BOARD_ALREADY_EMPTY';
 const BOARD_IS_NOT_INITIALIZED = 'BOARD_IS_NOT_INITIALIZED';
@@ -17,10 +19,12 @@ const BOARD_IS_NOT_INITIALIZED = 'BOARD_IS_NOT_INITIALIZED';
 export class BoardStore {
   boardState: BoardState = [];
   currentCellCoord: BoardCellCoord | undefined = undefined;
+  private _boardValidator: IBoardValidator;
 
-  constructor() {
+  constructor(boardValidator: IBoardValidator) {
     makeAutoObservable(this);
     this.initializeBoard();
+    this._boardValidator = boardValidator;
   }
 
   private setBoardState = (value: BoardState) => {
@@ -37,7 +41,14 @@ export class BoardStore {
   };
 
   public setCurrentCellCoord = (value: BoardCellCoord) => {
-    this.currentCellCoord = value;
+    const rowIndex = converRowToRowIndex(value.row);
+    const columnIndex = converColumnToColummnIndex(value.column);
+    this._boardValidator.setCoords(rowIndex, columnIndex);
+    if (this._boardValidator.validate()) {
+      this.currentCellCoord = value;
+    } else {
+      throw new Error(VALIDATION_ERROR);
+    }
   };
 
   public emptyBoard = () => {

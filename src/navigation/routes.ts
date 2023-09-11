@@ -5,4 +5,5 @@ export enum RootStackRoutes {
 export enum MainStackRoutes {
   WelcomeScreen = 'WelcomeScreen',
   ChangeBoardColorScreen = 'ChangeBoardColorScreen',
+  ChessGameScreen = 'ChessGameScreen',
 }

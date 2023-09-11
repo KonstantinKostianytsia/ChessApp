@@ -2,11 +2,13 @@ import {useContext} from 'react';
 
 import {IColors} from 'models/styles/IColors';
 import {IImages} from 'models/styles/IImages';
-import {getImages, ThemeContext, getColors} from 'styles';
+import {getImages, ThemeContext, getColors, getSpaceSystem} from 'styles';
+import {ISpacingSystem} from 'models/styles/ISpacingSystem';
 
-interface IUseTheme {
+export interface IUseTheme {
   images: IImages;
   colors: IColors;
+  spacingSystem: ISpacingSystem;
 }
 
 export const useTheme = (): IUseTheme => {
@@ -14,9 +16,11 @@ export const useTheme = (): IUseTheme => {
 
   const images = getImages(themeMode);
   const colors = getColors(themeMode);
+  const spacingSystem = getSpaceSystem();
 
   return {
     images,
     colors,
+    spacingSystem,
   };
 };

@@ -18,6 +18,7 @@ import {useBluetoothDevicesStore} from 'helpers/hooks/useStore';
 import RefreshButton from 'components/moleculs/RefreshButton';
 import {IAlertsService} from 'models/services/IAlertsService';
 import {RNAlertsService} from 'services/RNAlertsService';
+import {Stack} from 'react-native-spacing-system';
 
 type WelcomeScreenNavigatioProp = NativeStackNavigationProp<
   MainStackParamList,
@@ -84,9 +85,14 @@ const WelcomeScreen = () => {
     const onPressChangeColorButton = () => {
       navigation.navigate(MainStackRoutes.ChangeBoardColorScreen);
     };
+    const onPressClassicGame = () => {
+      navigation.navigate(MainStackRoutes.ChessGameScreen);
+    };
     return (
       <View style={styles.buttonsContainerStyles}>
         {renderFormButton('Change color of cells', onPressChangeColorButton)}
+        <Stack size={theme.spacingSystem[8]} />
+        {renderFormButton('Classic game', onPressClassicGame)}
       </View>
     );
   };

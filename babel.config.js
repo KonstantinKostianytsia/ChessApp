@@ -15,6 +15,7 @@ module.exports = {
           styles: './src/styles',
           helpers: './src/helpers',
           stores: './src/stores',
+          assets: './assets',
         },
       },
     ],

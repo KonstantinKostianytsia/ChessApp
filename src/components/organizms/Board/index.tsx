@@ -14,6 +14,9 @@ import BoardCellsRow from 'components/moleculs/BoardCellsRow';
 export interface BoardProps {
   onPressCell: (row: Row, column: Column) => void;
   boardState?: BoardState;
+
+  //// doesn't affect anything just for other element calculations
+  boardSize: number;
 }
 
 const Board = (props: BoardProps) => {

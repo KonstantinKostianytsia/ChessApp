@@ -6,6 +6,8 @@ import {lightImages} from './images';
 import {IColors} from 'models/styles/IColors';
 import {lightColors} from './colors';
 import {IThemeContext} from 'models/styles/IThemeContext';
+import {ISpacingSystem} from 'models/styles/ISpacingSystem';
+import {commonSpacingSystem} from './spacingSystem';
 
 export const getImages = (themeMode: ThemeMode): IImages => {
   switch (themeMode) {
@@ -19,6 +21,10 @@ export const getColors = (themeMode: ThemeMode): IColors => {
     case ThemeMode.LIGHT:
       return lightColors;
   }
+};
+
+export const getSpaceSystem = (): ISpacingSystem => {
+  return commonSpacingSystem;
 };
 
 export const ThemeContext = createContext<IThemeContext>({} as IThemeContext);
