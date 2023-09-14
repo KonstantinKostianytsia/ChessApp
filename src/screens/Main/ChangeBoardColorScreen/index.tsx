@@ -11,7 +11,6 @@ import {useBluetoothDevicesStore, useBoardStore} from 'helpers/hooks/useStore';
 import {IBluetoothCommandsService} from 'models/services/IBluetoothCommandsService';
 import {BluetoothCommandsService} from 'services/BluetoothCommandsService';
 import {UNHANDLED_INNER_ERROR} from 'constants/ErrorConstants';
-import BufferService from 'services/BufferService';
 import {Column} from 'models/boardModels/Column';
 import {Row} from 'models/boardModels/Row';
 
@@ -34,12 +33,11 @@ const ChangeBoardColorScreen = () => {
     /// Different modes can be handled here. Just add expression where you want to add data
     /// and call updateCellsState with new formatted data
     try {
-      const removeListener = bluetoothStore.setOnBoardStateMessage(message => {
-        const stateString = BufferService.convertBase64ToString(message);
-        const updateBoardState =
-          commandFormatterService.parseBoardFigureState(stateString);
-        boardStore.updateCellsState(updateBoardState);
-      });
+      const removeListener = bluetoothStore.setOnBoardStateMessage(
+        updateCellsState => {
+          boardStore.updateCellsState(updateCellsState);
+        },
+      );
       return () => {
         removeListener.remove();
       };

@@ -9,20 +9,28 @@ import {UNHANDLED_INNER_ERROR} from 'constants/ErrorConstants';
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
 import {BluetoothError} from 'models/services/BluetoothErrors';
 import {IBluetoothService} from 'models/services/IBluetoothService';
+import {IBluetoothCommandsService} from 'models/services/IBluetoothCommandsService';
+import BufferService from 'services/BufferService';
+import {UpdateCellState} from 'models/boardModels/Board';
 
 const WAIT_UNTIL_CONNECTING_FINISHING = 'WAIT_UNTIL_CONNECTING_FINISHING';
 const THERE_IS_NO_CONNECTED_DEVICE = 'THERE_IS_NO_CONNECTED_DEVICE';
 
 export class BluetoothDevicesStore {
   private bluetoothService: IBluetoothService;
+  private bluetoothCommandService: IBluetoothCommandsService;
   availableDevices: IDeviceInfo[] = [];
   selectedDevice: IDeviceInfo | undefined = undefined;
   connectedDevice: IDeviceInfo | undefined = undefined;
   isConnectingToDevice: boolean = false;
   isScanning: boolean = false;
 
-  constructor(bluetoothService: IBluetoothService) {
+  constructor(
+    bluetoothService: IBluetoothService,
+    bluetoothCommandService: IBluetoothCommandsService,
+  ) {
     this.bluetoothService = bluetoothService;
+    this.bluetoothCommandService = bluetoothCommandService;
     makeAutoObservable(this);
   }
 
@@ -147,7 +155,9 @@ export class BluetoothDevicesStore {
     });
   };
 
-  public setOnBoardStateMessage = (callback: (boardState: string) => void) => {
+  public setOnBoardStateMessage = (
+    callback: (boardState: UpdateCellState[]) => void,
+  ) => {
     const monitorCallback = (
       error?: BluetoothError | undefined,
       value?: string | undefined,
@@ -156,7 +166,13 @@ export class BluetoothDevicesStore {
         throw Error(error.message);
       } else {
         if (value) {
-          callback(value);
+          const encodedBoardStateStr =
+            BufferService.convertBase64ToString(value);
+          const updateBoardState =
+            this.bluetoothCommandService.parseBoardFigureState(
+              encodedBoardStateStr,
+            );
+          callback(updateBoardState);
         }
       }
     };

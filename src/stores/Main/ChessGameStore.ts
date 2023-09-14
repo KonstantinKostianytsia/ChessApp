@@ -5,6 +5,7 @@ import {
   BoardCellCoord,
   BoardWithChessFigureState,
 } from 'models/boardModels/Board';
+import {IChessBoardValidator} from 'models/helpers/validators/IChessBoardValidator';
 import {IChessFigureTransformer} from 'models/services/IChessFigureTransformer';
 import {GameStoreBase} from 'models/stores/GameStoreBase';
 
@@ -13,9 +14,12 @@ export class ChessGameStore extends GameStoreBase {
   currentCellCoord: BoardCellCoord | undefined = undefined;
 
   private _chessTransformerService: IChessFigureTransformer;
-  //   private _chessBoardValidator: IChessBoardValidator
+  private _chessBoardValidator: IChessBoardValidator;
 
-  constructor(chessTransformerService: IChessFigureTransformer) {
+  constructor(
+    chessTransformerService: IChessFigureTransformer,
+    chessBoardValidator: IChessBoardValidator,
+  ) {
     super();
     /// makeAutoObservable can't be used in stores that use inheritance
     makeObservable(this, {
@@ -26,12 +30,16 @@ export class ChessGameStore extends GameStoreBase {
     });
 
     this._chessTransformerService = chessTransformerService;
+    this._chessBoardValidator = chessBoardValidator;
 
     this.initializeBoard();
   }
 
   public setChessBoardState(boardState: BoardWithChessFigureState) {
-    this.chessBoardState = boardState;
+    this._chessBoardValidator.setCords(this.chessBoardState, boardState);
+    if (this._chessBoardValidator.validate()) {
+      this.chessBoardState = boardState;
+    }
   }
 
   public initializeBoard() {

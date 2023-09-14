@@ -5,9 +5,14 @@ import {BoardStore} from './Main/BoardStore';
 import {BoardValidator} from 'helpers/validator/BoardValidator';
 import {ChessGameStore} from './Main/ChessGameStore';
 import {ChessFigureTransformer} from 'services/ChessFiguresTransformer';
+import {IBluetoothCommandsService} from 'models/services/IBluetoothCommandsService';
+import {BluetoothCommandsService} from 'services/BluetoothCommandsService';
+import {ChessBoardValidator} from 'helpers/validator/ChessBoardValidator';
 
 export class RootStore {
   private bluetoothService: IBluetoothService = new BluetoothService();
+  private bluetoothCommandService: IBluetoothCommandsService =
+    new BluetoothCommandsService();
   boardStore: BoardStore;
   bluetoothDevicesStore: BluetoothDevicesStore;
   chesssGameStore: ChessGameStore;
@@ -15,9 +20,13 @@ export class RootStore {
   constructor() {
     this.bluetoothDevicesStore = new BluetoothDevicesStore(
       this.bluetoothService,
+      this.bluetoothCommandService,
     );
     this.boardStore = new BoardStore(new BoardValidator());
-    this.chesssGameStore = new ChessGameStore(new ChessFigureTransformer());
+    this.chesssGameStore = new ChessGameStore(
+      new ChessFigureTransformer(),
+      new ChessBoardValidator(),
+    );
   }
 }
 
