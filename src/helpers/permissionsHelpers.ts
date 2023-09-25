@@ -10,9 +10,7 @@ const requestPermission = (permission: Permission): Promise<void> => {
       if (result) {
         resolve();
       } else {
-        PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        ).then(requestResult => {
+        PermissionsAndroid.request(permission).then(requestResult => {
           if (requestResult === PermissionsAndroid.RESULTS.GRANTED) {
             resolve();
           } else {
@@ -59,6 +57,18 @@ export const requestBluetoothConnect = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (Platform.OS === 'android') {
       requestPermission(PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT)
+        .then(resolve)
+        .catch(err => reject(err));
+    } else {
+      reject(PLATFORM_ERROR);
+    }
+  });
+};
+
+export const requestWriteExternalStorage = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (Platform.OS === 'android') {
+      requestPermission(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
         .then(resolve)
         .catch(err => reject(err));
     } else {

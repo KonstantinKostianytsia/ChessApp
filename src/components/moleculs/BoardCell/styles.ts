@@ -23,3 +23,7 @@ export const getBoardLEDColorStyles = (LEDColor?: string) => ({
   ...styles.boardLEDColorStyles,
   backgroundColor: LEDColor,
 });
+
+export const getBoardCellTextColor = (color: string) => ({
+  color,
+});

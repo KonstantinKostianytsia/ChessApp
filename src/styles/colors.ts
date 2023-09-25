@@ -10,4 +10,5 @@ export const lightColors: IColors = {
   viewBackgroundColor: '#EDEDED',
   darkGreyText: '#333333',
   selectedListItem: '#4CAF50',
+  cancelButtonBackground: '#FF0000',
 };

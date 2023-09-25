@@ -8,4 +8,5 @@ export interface IColors {
   viewBackgroundColor: string;
   darkGreyText: string;
   selectedListItem: string;
+  cancelButtonBackground: string;
 }

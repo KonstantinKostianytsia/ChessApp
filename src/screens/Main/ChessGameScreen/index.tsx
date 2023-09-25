@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {Dimensions, View} from 'react-native';
 import {Observer} from 'mobx-react';
+import {useKeepAwake} from '@sayem314/react-native-keep-awake';
 
 import ChessBoard from 'components/organizms/ChessBoard';
 import BackgroundColor from 'components/atoms/BackgroundColor';
@@ -21,6 +22,8 @@ const BOARD_MARGIN_HORIZONTAL = 20;
 const BOARD_SIZE = dimensions.width - BOARD_MARGIN_HORIZONTAL;
 
 const ChessGameScreen = () => {
+  useKeepAwake();
+
   const chessGameStore = useChessGameStore();
   const bluetoothStore = useBluetoothDevicesStore();
   const theme = useTheme();

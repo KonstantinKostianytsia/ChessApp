@@ -4,7 +4,7 @@ import {styles} from './styles';
 import {FontSize} from 'constants/Labels';
 
 export interface CustomTextProps {
-  style: StyleProp<TextStyle>;
+  style?: StyleProp<TextStyle>;
 }
 
 type CommonTextProps = PropsWithChildren<CustomTextProps>;
