@@ -20,4 +20,16 @@ export class ChessFigure {
     this.color = color;
     this.figureType = figureType;
   }
+
+  equals(anotherChessFigure?: ChessFigure): boolean {
+    /// if you can call this method. It means that it is instance of ChessFigure
+    /// instance of ChessFigure is not equal undefined
+    if (anotherChessFigure === undefined) {
+      return false;
+    }
+    return (
+      this.color === anotherChessFigure.color &&
+      this.figureType === anotherChessFigure.figureType
+    );
+  }
 }

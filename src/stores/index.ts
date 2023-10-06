@@ -8,6 +8,7 @@ import {ChessFigureTransformer} from 'services/ChessFiguresTransformer';
 import {IBluetoothCommandsService} from 'models/services/IBluetoothCommandsService';
 import {BluetoothCommandsService} from 'services/BluetoothCommandsService';
 import {ChessBoardValidator} from 'helpers/validator/ChessBoardValidator';
+import {ChessBoardAnalyzer} from 'services/ChessBoardAnalyzer';
 
 export class RootStore {
   private bluetoothService: IBluetoothService = new BluetoothService();
@@ -25,7 +26,7 @@ export class RootStore {
     this.boardStore = new BoardStore(new BoardValidator());
     this.chesssGameStore = new ChessGameStore(
       new ChessFigureTransformer(),
-      new ChessBoardValidator(),
+      new ChessBoardValidator(new ChessBoardAnalyzer()),
     );
   }
 }

@@ -51,7 +51,6 @@ export class BluetoothDevicesStore {
         }
       }
     }
-    console.log(concatedArrays);
     this.availableDevices = concatedArrays;
   };
 
@@ -141,10 +140,11 @@ export class BluetoothDevicesStore {
   };
 
   public setOnStopScanningLister = (callback: () => void) => {
-    return this.bluetoothService.setOnStopScanning(() => {
+    const onStopScanning = () => {
       this.setIsScanning(false);
       callback();
-    });
+    };
+    return this.bluetoothService.setOnStopScanning(onStopScanning);
   };
 
   public setOnFindDeviceListener = (

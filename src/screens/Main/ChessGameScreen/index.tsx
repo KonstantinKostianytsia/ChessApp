@@ -32,8 +32,10 @@ const ChessGameScreen = () => {
     try {
       const removeListener = bluetoothStore.setOnBoardStateMessage(
         updateCellsState => {
-          const newChessBoardState =
-            transformUpdateCellStateToChessBoardState(updateCellsState);
+          const newChessBoardState = transformUpdateCellStateToChessBoardState(
+            updateCellsState,
+            chessGameStore.chessBoardState,
+          );
           chessGameStore.setChessBoardState(newChessBoardState);
         },
       );

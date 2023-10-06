@@ -1,4 +1,4 @@
-import {initialChessBoardState} from 'boardStates/ChessBoardStates/initialChessBoardState';
+import {emptyChessBoardState} from 'boardStates/ChessBoardStates/initialChessBoardState';
 import {action, makeObservable, observable} from 'mobx';
 
 import {
@@ -36,16 +36,21 @@ export class ChessGameStore extends GameStoreBase {
   }
 
   public setChessBoardState(boardState: BoardWithChessFigureState) {
-    this._chessBoardValidator.setCords(this.chessBoardState, boardState);
-    if (this._chessBoardValidator.validate()) {
-      this.chessBoardState = boardState;
+    const isStateChanged = this._chessBoardValidator.setNewState(
+      this.chessBoardState,
+      boardState,
+    );
+    if (isStateChanged) {
+      if (this._chessBoardValidator.validate()) {
+        this.chessBoardState = boardState;
+      }
     }
   }
 
   public initializeBoard() {
     const chessBoard =
       this._chessTransformerService.trasformeStringsToChessBoardState(
-        initialChessBoardState,
+        emptyChessBoardState,
       );
     this.setChessBoardState(chessBoard);
   }

@@ -55,6 +55,7 @@ export const getImageOfChessFigure = (
 
 export const transformUpdateCellStateToChessBoardState = (
   updateCellState: UpdateCellState[],
+  prevState: BoardWithChessFigureState,
 ): BoardWithChessFigureState => {
   const boardCopy: BoardWithChessFigureState = [];
   for (let row = 0; row < DEFAULT_BOARD_SIZE; ++row) {

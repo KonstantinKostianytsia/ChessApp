@@ -10,3 +10,14 @@ export const initialChessBoardState: ChessTransformerValue = [
   'PPPPPPPP',
   'RNBQKBNR',
 ];
+
+export const emptyChessBoardState: ChessTransformerValue = [
+  '........',
+  '........',
+  '........',
+  '........',
+  '........',
+  '........',
+  '........',
+  '........',
+];

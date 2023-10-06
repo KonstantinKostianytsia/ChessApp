@@ -66,16 +66,20 @@ const ChangeBoardColorScreen = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCounterStarted]);
 
+  const collectingData = (updateCellsState: UpdateCellState[]) => {
+    for (let cell of updateCellsState) {
+      if (cell.cellState.cellValue) {
+        const rowIndex = converRowToRowIndex(cell.cellCoords.row);
+        collectedData[rowIndex].push(cell.cellState.cellValue);
+      }
+    }
+  };
+
   const onUpdateCellsState = (updateCellsState: UpdateCellState[]) => {
     boardStore.updateCellsState(updateCellsState);
 
     if (isCounterStarted) {
-      for (let cell of updateCellsState) {
-        if (cell.cellState.cellValue) {
-          const rowIndex = converRowToRowIndex(cell.cellCoords.row);
-          collectedData[rowIndex].push(cell.cellState.cellValue);
-        }
-      }
+      collectingData(updateCellsState);
     }
   };
 

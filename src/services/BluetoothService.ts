@@ -126,7 +126,6 @@ export class BluetoothService implements IBluetoothService {
       characteristicUUID,
       formatterData,
     );
-    console.log(result);
     return;
   };
 
