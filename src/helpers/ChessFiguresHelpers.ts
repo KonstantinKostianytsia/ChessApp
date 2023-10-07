@@ -15,6 +15,7 @@ import {converColumnToColummnIndex, converRowToRowIndex} from './boardHelpers';
 import {findValueInRanges} from './utils/searchUtils';
 import {CHESS_FIGURE_VALUES_RANGES} from 'constants/ChessFiguresConstants';
 import {IChessFigureRange} from 'models/constants/ChessFigureConstants';
+import {AverageCellsValues} from 'models/services/IChessBoardAnalyzer';
 
 export const getImageOfChessFigure = (
   theme: IUseTheme,
@@ -55,7 +56,7 @@ export const getImageOfChessFigure = (
 
 export const transformUpdateCellStateToChessBoardState = (
   updateCellState: UpdateCellState[],
-  prevState: BoardWithChessFigureState,
+  averageCellsValues: AverageCellsValues,
 ): BoardWithChessFigureState => {
   const boardCopy: BoardWithChessFigureState = [];
   for (let row = 0; row < DEFAULT_BOARD_SIZE; ++row) {
@@ -70,9 +71,12 @@ export const transformUpdateCellStateToChessBoardState = (
     const columnIndex = converColumnToColummnIndex(item.cellCoords.column);
     const cellState: CellWithChessFigureStateType = {
       ...item.cellState,
-      cellChessFigure: convertESPCellValueToChessFigure(
-        item.cellState.cellValue,
-      ),
+      cellChessFigure: item.cellState.cellValue
+        ? convertESPCellValueToChessFigure(
+            item.cellState.cellValue,
+            averageCellsValues[rowIndex][columnIndex],
+          )
+        : undefined,
     };
 
     boardCopy[rowIndex][columnIndex] = cellState;
@@ -82,15 +86,18 @@ export const transformUpdateCellStateToChessBoardState = (
 };
 
 export const convertESPCellValueToChessFigure = (
-  cellValue?: number,
+  cellValue: number,
+  averageCellValue: number,
 ): ChessFigure | undefined => {
-  if (cellValue) {
-    const foundRange = findValueInRanges(
-      CHESS_FIGURE_VALUES_RANGES,
-      cellValue,
-    ) as IChessFigureRange;
-    if (foundRange.figureType && foundRange.figureColor) {
-      return new ChessFigure(foundRange.figureColor, foundRange.figureType);
-    }
+  const divergenceFromAverage = cellValue - averageCellValue;
+  const foundRange = findValueInRanges(
+    CHESS_FIGURE_VALUES_RANGES,
+    Number(Math.abs(divergenceFromAverage).toFixed(2)),
+  ) as IChessFigureRange;
+  const figureColor =
+    divergenceFromAverage > 0 ? ChessFigureColor.White : ChessFigureColor.Black;
+  if (foundRange.figureType) {
+    console.log(divergenceFromAverage);
+    return new ChessFigure(figureColor, foundRange.figureType);
   }
 };

@@ -24,9 +24,12 @@ export class RootStore {
       this.bluetoothCommandService,
     );
     this.boardStore = new BoardStore(new BoardValidator());
+
+    const chessBoardAnalyzer = new ChessBoardAnalyzer();
     this.chesssGameStore = new ChessGameStore(
       new ChessFigureTransformer(),
-      new ChessBoardValidator(new ChessBoardAnalyzer()),
+      new ChessBoardValidator(chessBoardAnalyzer),
+      chessBoardAnalyzer,
     );
   }
 }

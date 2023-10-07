@@ -1,6 +1,7 @@
 import {
   BoardWithChessFigureState,
   CellWithChessFigureStateType,
+  UpdateCellState,
 } from 'models/boardModels/Board';
 import {
   ChessFigure,
@@ -46,7 +47,10 @@ export type ComparatorType = (
   newStateCell: CellWithChessFigureStateType | undefined,
 ) => boolean;
 
+export type AverageCellsValues = Array<Array<number>>;
+
 export interface IChessBoardAnalyzer {
+  averageCellsValues: AverageCellsValues;
   isStateChanged(
     prevState: BoardWithChessFigureState,
     newState: BoardWithChessFigureState,
@@ -65,4 +69,6 @@ export interface IChessBoardAnalyzer {
     prevStateAmount: ChessBoardCounterResponseType;
     newStateAmount: ChessBoardCounterResponseType;
   };
+
+  collectDataForAverageDataTable(newState: UpdateCellState[]): void;
 }

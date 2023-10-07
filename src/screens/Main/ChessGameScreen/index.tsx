@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Dimensions, View} from 'react-native';
+import {Dimensions, View, Text} from 'react-native';
 import {Observer} from 'mobx-react';
 import {useKeepAwake} from '@sayem314/react-native-keep-awake';
 
@@ -11,10 +11,13 @@ import {
 } from 'helpers/hooks/useStore';
 import styles from './styles';
 import {useTheme} from 'helpers/hooks/useTheme';
-import {BOARD_CELLS_PADDINGS} from 'constants/BoardConstants';
-import {transformUpdateCellStateToChessBoardState} from 'helpers/ChessFiguresHelpers';
+import {
+  BOARD_CALIBRATION_TIME,
+  BOARD_CELLS_PADDINGS,
+} from 'constants/BoardConstants';
 import {Row} from 'models/boardModels/Row';
 import {Column} from 'models/boardModels/Column';
+import {useDelay} from 'helpers/hooks/useDelay';
 
 const dimensions = Dimensions.get('window');
 
@@ -28,15 +31,15 @@ const ChessGameScreen = () => {
   const bluetoothStore = useBluetoothDevicesStore();
   const theme = useTheme();
 
+  useDelay(BOARD_CALIBRATION_TIME, () => {
+    chessGameStore.stopCalibration();
+  });
+
   useEffect(() => {
     try {
       const removeListener = bluetoothStore.setOnBoardStateMessage(
         updateCellsState => {
-          const newChessBoardState = transformUpdateCellStateToChessBoardState(
-            updateCellsState,
-            chessGameStore.chessBoardState,
-          );
-          chessGameStore.setChessBoardState(newChessBoardState);
+          chessGameStore.onNewBoardStateMessage(updateCellsState);
         },
       );
 
@@ -68,6 +71,9 @@ const ChessGameScreen = () => {
           containerStyles={styles.backgroundStyles}
           backgroundColor={theme.colors.lightGrey}>
           <>
+            {chessGameStore.isBoardCalibrating && (
+              <Text>Wait until board is callibrating</Text>
+            )}
             <View
               style={{
                 height: BOARD_SIZE,

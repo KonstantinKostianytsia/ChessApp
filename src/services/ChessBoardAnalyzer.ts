@@ -4,13 +4,16 @@ import {
   convertColumnIndexToColumn,
   convertRowIndexToRow,
 } from 'helpers/boardHelpers';
+import {converUpdateCellStateTypeToBoardState} from 'helpers/mappers/BoardStateMappers';
 import {
   BoardCellCoord,
   BoardWithChessFigureState,
   CellWithChessFigureStateType,
+  UpdateCellState,
 } from 'models/boardModels/Board';
 import {ChessFigure} from 'models/boardModels/ChessFigure';
 import {
+  AverageCellsValues,
   ChessBoardCounterResponse,
   ComparatorType,
   IChessBoardAnalyzer,
@@ -18,6 +21,7 @@ import {
 } from 'models/services/IChessBoardAnalyzer';
 
 export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
+  averageCellsValues: AverageCellsValues = [];
   isStateChanged(
     prevState: BoardWithChessFigureState | undefined,
     newState: BoardWithChessFigureState | undefined,
@@ -55,7 +59,6 @@ export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
         );
 
         if (!isPrevStateEqualNewState) {
-          console.log('new state', newStateCell);
           return true;
         }
       }
@@ -178,5 +181,37 @@ export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
       prevStateAmount,
       newStateAmount,
     };
+  }
+
+  collectDataForAverageDataTable(updateState: UpdateCellState[]): void {
+    const newState = converUpdateCellStateTypeToBoardState(updateState);
+    /// Initialize average data table
+    if (this.averageCellsValues.length === 0) {
+      for (let i = 0; i < DEFAULT_BOARD_SIZE; ++i) {
+        this.averageCellsValues.push([]);
+        for (let j = 0; j < DEFAULT_BOARD_SIZE; ++j) {
+          this.averageCellsValues[i].push(j);
+        }
+      }
+      for (let row = 0; row < DEFAULT_BOARD_SIZE; row++) {
+        for (let column = 0; column < DEFAULT_BOARD_SIZE; column++) {
+          const newCellValue = newState[row][column]?.cellValue;
+          if (newCellValue) {
+            this.averageCellsValues[row][column] = newCellValue;
+          }
+        }
+      }
+    } else {
+      for (let row = 0; row < DEFAULT_BOARD_SIZE; ++row) {
+        for (let column = 0; column < DEFAULT_BOARD_SIZE; ++column) {
+          const cellValue = newState[row][column]?.cellValue as number;
+          const previousAverage = this.averageCellsValues[row][column];
+          const averageValue = Number(
+            ((cellValue + previousAverage) / 2).toFixed(2),
+          );
+          this.averageCellsValues[row][column] = averageValue;
+        }
+      }
+    }
   }
 }
