@@ -60,7 +60,7 @@ export interface IChessBoardAnalyzer {
   findLastMove(
     prevState: BoardWithChessFigureState,
     newState: BoardWithChessFigureState,
-  ): IChessMove | null;
+  ): Array<IChessMove> | null;
 
   countAmountOfFigures(
     prevState: BoardWithChessFigureState,

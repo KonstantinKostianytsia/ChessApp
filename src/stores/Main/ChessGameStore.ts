@@ -1,5 +1,9 @@
-import {emptyChessBoardState} from 'boardStates/ChessBoardStates/initialChessBoardState';
-import {transformUpdateCellStateToChessBoardState} from 'helpers/ChessFiguresHelpers';
+import {initialChessBoardState} from 'boardStates/ChessBoardStates/initialChessBoardState';
+import {UNHANDLED_INNER_ERROR} from 'constants/ErrorConstants';
+import {
+  getNewChessBoardStateFromPreviousAndMove,
+  transformUpdateCellStateToChessBoardState,
+} from 'helpers/ChessFiguresHelpers';
 import {action, makeObservable, observable} from 'mobx';
 
 import {
@@ -15,11 +19,10 @@ import {GameStoreBase} from 'models/stores/GameStoreBase';
 export class ChessGameStore extends GameStoreBase {
   chessBoardState: BoardWithChessFigureState = [];
   currentCellCoord: BoardCellCoord | undefined = undefined;
-  isBoardCalibrating: boolean = true;
 
   private _chessTransformerService: IChessFigureTransformer;
   private _chessBoardValidator: IChessBoardValidator;
-  public chessBoardAnalyzer: IChessBoardAnalyzer;
+  private _chessBoardAnalyzer: IChessBoardAnalyzer;
 
   constructor(
     chessTransformerService: IChessFigureTransformer,
@@ -31,31 +34,16 @@ export class ChessGameStore extends GameStoreBase {
     makeObservable(this, {
       chessBoardState: observable,
       currentCellCoord: observable,
-      isBoardCalibrating: observable,
       setChessBoardState: action,
       initializeBoard: action,
-      startCalibration: action,
-      stopCalibration: action,
     });
 
     this._chessTransformerService = chessTransformerService;
     this._chessBoardValidator = chessBoardValidator;
-    this.chessBoardAnalyzer = chessBoardAnalyzer;
+    this._chessBoardAnalyzer = chessBoardAnalyzer;
 
     this.initializeBoard();
   }
-
-  public startCalibration = () => {
-    this.isBoardCalibrating = true;
-  };
-
-  public stopCalibration = () => {
-    this.isBoardCalibrating = false;
-  };
-
-  public collectAverageData = (newState: UpdateCellState[]) => {
-    this.chessBoardAnalyzer.collectDataForAverageDataTable(newState);
-  };
 
   public setChessBoardState(boardState: BoardWithChessFigureState) {
     const isStateChanged = this._chessBoardValidator.setNewState(
@@ -63,29 +51,47 @@ export class ChessGameStore extends GameStoreBase {
       boardState,
     );
     if (isStateChanged) {
-      if (this._chessBoardValidator.validate()) {
-        this.chessBoardState = boardState;
+      const foundMoves = this._chessBoardAnalyzer.findLastMove(
+        this.chessBoardState,
+        boardState,
+      );
+      if (foundMoves !== null) {
+        if (this._chessBoardValidator.validate()) {
+          if (foundMoves.length === 1) {
+            this.chessBoardState = getNewChessBoardStateFromPreviousAndMove(
+              this.chessBoardState,
+              foundMoves[0],
+            );
+            this.makeMove(foundMoves[0].startPos, foundMoves[0].finishPos);
+          } else {
+            throw Error(UNHANDLED_INNER_ERROR);
+          }
+        }
       }
     }
   }
 
+  /// Get New State
+  /// Check if state changed
+  /// Find last move comparing new state and previous, get all moves return null | Array<IMove>
+  ///    if figure was in prev state and disappeared in new state it is startPos
+  ///    if figure appeared in new state and it was undefiend in prev state it is finishPos
+  ///    if figure changed the color in new state it is finishPos
+  /// validate last move
+  ///     consider castling if king and rook moved in one move
+  ///     changing pawn to any figure if pawn got to another part
+  ///     get pawn if king went to another board part
+  /// set new state
   public onNewBoardStateMessage(updateCellsState: UpdateCellState[]) {
-    if (this.isBoardCalibrating) {
-      this.collectAverageData(updateCellsState);
-      return;
-    } else {
-      const newChessBoardState = transformUpdateCellStateToChessBoardState(
-        updateCellsState,
-        this.chessBoardAnalyzer.averageCellsValues,
-      );
-      this.setChessBoardState(newChessBoardState);
-    }
+    const newChessBoardState =
+      transformUpdateCellStateToChessBoardState(updateCellsState);
+    this.setChessBoardState(newChessBoardState);
   }
 
   public initializeBoard() {
     const chessBoard =
       this._chessTransformerService.trasformeStringsToChessBoardState(
-        emptyChessBoardState,
+        initialChessBoardState,
       );
     this.chessBoardState = chessBoard;
   }

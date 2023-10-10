@@ -21,3 +21,14 @@ export const emptyChessBoardState: ChessTransformerValue = [
   '........',
   '........',
 ];
+
+export const testChessBoardState: ChessTransformerValue = [
+  '........',
+  '........',
+  '........',
+  '........',
+  '........',
+  '........',
+  '.......P',
+  '........',
+];

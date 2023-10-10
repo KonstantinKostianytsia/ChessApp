@@ -10,6 +10,7 @@ export enum ChessFigureType {
   Bishop = 'Bishop',
   Knight = 'Knight',
   Pawn = 'Pawn',
+  Unknown = 'Unknown',
 }
 
 export class ChessFigure {
@@ -29,7 +30,8 @@ export class ChessFigure {
     }
     return (
       this.color === anotherChessFigure.color &&
-      this.figureType === anotherChessFigure.figureType
+      (this.figureType === anotherChessFigure.figureType ||
+        anotherChessFigure.figureType === ChessFigureType.Unknown)
     );
   }
 }

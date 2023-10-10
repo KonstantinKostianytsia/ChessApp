@@ -1,5 +1,5 @@
 import {COLUMNS_CAPTIONS, ROW_CAPTIONS} from 'constants/BoardConstants';
-import {CellColor} from 'models/boardModels/Board';
+import {CellColor, CellStateType} from 'models/boardModels/Board';
 import {Column} from 'models/boardModels/Column';
 import {Row} from 'models/boardModels/Row';
 
@@ -29,4 +29,17 @@ export const converRowToRowIndex = (row: Row): number => {
 
 export const converColumnToColummnIndex = (column: Column): number => {
   return COLUMNS_CAPTIONS.findIndex((value: string) => value === column);
+};
+
+export const getBoardDeepCopy = <T = CellStateType>(
+  boardState: Array<Array<T>>,
+): Array<Array<T>> => {
+  const boardStateCopy: Array<Array<T>> = [];
+  for (let row = 0; row < boardState.length; ++row) {
+    boardStateCopy.push([]);
+    for (let column = 0; column < boardState[row].length; ++column) {
+      boardStateCopy[row].push({...boardState[row][column]});
+    }
+  }
+  return boardStateCopy;
 };

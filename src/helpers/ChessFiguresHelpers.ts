@@ -11,11 +11,16 @@ import {
   UpdateCellState,
 } from 'models/boardModels/Board';
 import {DEFAULT_BOARD_SIZE} from 'constants/BoardConstants';
-import {converColumnToColummnIndex, converRowToRowIndex} from './boardHelpers';
-import {findValueInRanges} from './utils/searchUtils';
-import {CHESS_FIGURE_VALUES_RANGES} from 'constants/ChessFiguresConstants';
-import {IChessFigureRange} from 'models/constants/ChessFigureConstants';
-import {AverageCellsValues} from 'models/services/IChessBoardAnalyzer';
+import {
+  converColumnToColummnIndex,
+  converRowToRowIndex,
+  getBoardDeepCopy,
+} from './boardHelpers';
+import {
+  CHESS_BOARD_CELL_NORMAL_VALUE,
+  CHESS_FIGURE_TRESHHOLD,
+} from 'constants/ChessFiguresConstants';
+import {IChessMove} from 'models/services/IChessBoardAnalyzer';
 
 export const getImageOfChessFigure = (
   theme: IUseTheme,
@@ -56,7 +61,6 @@ export const getImageOfChessFigure = (
 
 export const transformUpdateCellStateToChessBoardState = (
   updateCellState: UpdateCellState[],
-  averageCellsValues: AverageCellsValues,
 ): BoardWithChessFigureState => {
   const boardCopy: BoardWithChessFigureState = [];
   for (let row = 0; row < DEFAULT_BOARD_SIZE; ++row) {
@@ -72,10 +76,7 @@ export const transformUpdateCellStateToChessBoardState = (
     const cellState: CellWithChessFigureStateType = {
       ...item.cellState,
       cellChessFigure: item.cellState.cellValue
-        ? convertESPCellValueToChessFigure(
-            item.cellState.cellValue,
-            averageCellsValues[rowIndex][columnIndex],
-          )
+        ? convertESPCellValueToChessFigure(item.cellState.cellValue)
         : undefined,
     };
 
@@ -87,17 +88,34 @@ export const transformUpdateCellStateToChessBoardState = (
 
 export const convertESPCellValueToChessFigure = (
   cellValue: number,
-  averageCellValue: number,
 ): ChessFigure | undefined => {
-  const divergenceFromAverage = cellValue - averageCellValue;
-  const foundRange = findValueInRanges(
-    CHESS_FIGURE_VALUES_RANGES,
-    Number(Math.abs(divergenceFromAverage).toFixed(2)),
-  ) as IChessFigureRange;
+  const divergenceFromAverage = cellValue - CHESS_BOARD_CELL_NORMAL_VALUE;
+  if (Math.abs(divergenceFromAverage) < CHESS_FIGURE_TRESHHOLD) {
+    return undefined;
+  }
   const figureColor =
     divergenceFromAverage > 0 ? ChessFigureColor.White : ChessFigureColor.Black;
-  if (foundRange.figureType) {
-    console.log(divergenceFromAverage);
-    return new ChessFigure(figureColor, foundRange.figureType);
-  }
+  return new ChessFigure(figureColor, ChessFigureType.Unknown);
+};
+
+export const getNewChessBoardStateFromPreviousAndMove = (
+  prevState: BoardWithChessFigureState,
+  lastMove: IChessMove,
+): BoardWithChessFigureState => {
+  const prevStateCopy = getBoardDeepCopy(prevState);
+  const startPosRowIndex = converRowToRowIndex(lastMove.startPos.row);
+  const startPosColumnIndex = converColumnToColummnIndex(
+    lastMove.startPos.column,
+  );
+  const finishPosRowIndex = converRowToRowIndex(lastMove.finishPos.row);
+  const finishPosColumnIndex = converColumnToColummnIndex(
+    lastMove.finishPos.column,
+  );
+
+  prevStateCopy[startPosRowIndex][startPosColumnIndex] = undefined;
+  prevStateCopy[finishPosRowIndex][finishPosColumnIndex] = {
+    cellChessFigure: lastMove.chessFigure,
+  };
+
+  return prevStateCopy;
 };

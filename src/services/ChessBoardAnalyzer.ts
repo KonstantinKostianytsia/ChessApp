@@ -20,6 +20,8 @@ import {
   IChessMove,
 } from 'models/services/IChessBoardAnalyzer';
 
+const UNHANDLED_CASTLING = 'UNHANDLED_CASTLING';
+
 export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
   averageCellsValues: AverageCellsValues = [];
   isStateChanged(
@@ -70,22 +72,26 @@ export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
   findLastMove(
     prevState: BoardWithChessFigureState,
     newState: BoardWithChessFigureState,
-  ): IChessMove | null {
+  ): Array<IChessMove> | null {
     const comparator: ComparatorType = (
       prevStateCell: CellWithChessFigureStateType | undefined,
       newStateCell: CellWithChessFigureStateType | undefined,
     ) => {
-      return Boolean(
-        prevStateCell?.cellChessFigure?.equals(newStateCell?.cellChessFigure),
-      );
+      if (prevStateCell?.cellChessFigure !== undefined) {
+        return prevStateCell.cellChessFigure.equals(
+          newStateCell?.cellChessFigure,
+        );
+      } else {
+        return prevStateCell?.cellChessFigure === newStateCell?.cellChessFigure;
+      }
     };
 
     if (!this.isStateChanged(prevState, newState, comparator)) {
       return null;
     }
-    let startPos: BoardCellCoord | null = null;
-    let finishPos: BoardCellCoord | null = null;
-    let figure: ChessFigure | null = null;
+    let startPos: Array<BoardCellCoord> = [];
+    let finishPos: Array<BoardCellCoord> = [];
+    let figure: Array<ChessFigure> = [];
     let amountOfStateChanges = 0;
 
     for (let row = 0; row < DEFAULT_BOARD_SIZE; row++) {
@@ -104,53 +110,75 @@ export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
             /// prevStateCell !== newStateCell
             /// prevStateCell === undefined
             /// so figure appeared in newStateCell it is finish point
-            if (prevCellState?.cellChessFigure === undefined) {
-              finishPos = {
+            if (
+              prevCellState?.cellChessFigure === undefined &&
+              newCellState?.cellChessFigure !== undefined
+            ) {
+              finishPos?.push({
                 row: convertRowIndexToRow(row),
                 column: convertColumnIndexToColumn(column),
-              };
-              figure = newCellState?.cellChessFigure as ChessFigure;
+              });
+              /// We don't know what figure moved because newState contains Unknown figures
               continue;
             }
 
             /// prevStateCell === undefined
             /// so figure disappeared in newStateCell it is start point
-            if (newCellState?.cellChessFigure === undefined) {
-              startPos = {
+            if (
+              newCellState?.cellChessFigure === undefined &&
+              prevCellState?.cellChessFigure !== undefined
+            ) {
+              startPos.push({
                 row: convertRowIndexToRow(row),
                 column: convertColumnIndexToColumn(column),
-              };
-              figure = prevCellState.cellChessFigure;
+              });
+              figure.push(prevCellState.cellChessFigure);
               continue;
             }
           }
           /// Figure hit another figure
           /// so it is finish point
           else {
-            finishPos = {
+            finishPos.push({
               row: convertRowIndexToRow(row),
               column: convertColumnIndexToColumn(column),
-            };
-            figure = newCellState.cellChessFigure;
+            });
+            /// We don't know what figure moved because newState contains Unknown figures
             continue;
           }
         }
       }
     }
 
-    if (amountOfStateChanges > 2) {
+    if (amountOfStateChanges % 2 !== 0) {
+      /// a correct movement contains even amount of changes
       throw Error(VALIDATION_ERROR);
     }
 
-    if (startPos !== null && finishPos !== null && figure !== null) {
-      return {
-        startPos,
-        finishPos,
-        chessFigure: figure,
-      };
-    } else {
+    const foundStartPos = startPos.length;
+    const foundFinishPos = finishPos.length;
+    const foundFigure = figure.length;
+
+    /// No movements were found
+    if (foundFinishPos === 0 && foundFigure === 0 && foundStartPos === 0) {
       return null;
     }
+
+    if (foundFigure === 1 && foundStartPos === 1 && foundFinishPos === 1) {
+      return [
+        {
+          finishPos: finishPos[0],
+          startPos: startPos[0],
+          chessFigure: figure[0],
+        },
+      ];
+    }
+
+    if (foundFigure === 2 && foundFinishPos === 2 && foundStartPos === 2) {
+      throw Error(UNHANDLED_CASTLING);
+    }
+
+    return null;
   }
 
   countAmountOfFigures(
