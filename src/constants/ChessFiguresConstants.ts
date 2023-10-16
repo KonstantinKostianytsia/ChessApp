@@ -1,2 +1,2 @@
-export const CHESS_BOARD_CELL_NORMAL_VALUE = 30;
-export const CHESS_FIGURE_TRESHHOLD = 4;
+export const CALIBRATION_DELAY = 20000;
+export const CHESS_FIGURE_TRESHHOLD = 3;

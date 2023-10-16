@@ -1,5 +1,8 @@
 import {initialChessBoardState} from 'boardStates/ChessBoardStates/initialChessBoardState';
-import {UNHANDLED_INNER_ERROR} from 'constants/ErrorConstants';
+import {
+  UNHANDLED_INNER_ERROR,
+  VALIDATION_ERROR,
+} from 'constants/ErrorConstants';
 import {
   getNewChessBoardStateFromPreviousAndMove,
   transformUpdateCellStateToChessBoardState,
@@ -15,6 +18,7 @@ import {IChessBoardValidator} from 'models/helpers/validators/IChessBoardValidat
 import {IChessBoardAnalyzer} from 'models/services/IChessBoardAnalyzer';
 import {IChessFigureTransformer} from 'models/services/IChessFigureTransformer';
 import {GameStoreBase} from 'models/stores/GameStoreBase';
+import {RootStore} from 'stores';
 
 export class ChessGameStore extends GameStoreBase {
   chessBoardState: BoardWithChessFigureState = [];
@@ -23,11 +27,13 @@ export class ChessGameStore extends GameStoreBase {
   private _chessTransformerService: IChessFigureTransformer;
   private _chessBoardValidator: IChessBoardValidator;
   private _chessBoardAnalyzer: IChessBoardAnalyzer;
+  private _rootStore: RootStore;
 
   constructor(
     chessTransformerService: IChessFigureTransformer,
     chessBoardValidator: IChessBoardValidator,
     chessBoardAnalyzer: IChessBoardAnalyzer,
+    rootStore: RootStore,
   ) {
     super();
     /// makeAutoObservable can't be used in stores that use inheritance
@@ -41,12 +47,13 @@ export class ChessGameStore extends GameStoreBase {
     this._chessTransformerService = chessTransformerService;
     this._chessBoardValidator = chessBoardValidator;
     this._chessBoardAnalyzer = chessBoardAnalyzer;
+    this._rootStore = rootStore;
 
     this.initializeBoard();
   }
 
   public setChessBoardState(boardState: BoardWithChessFigureState) {
-    const isStateChanged = this._chessBoardValidator.setNewState(
+    const isStateChanged = this._chessBoardAnalyzer.isStateChanged(
       this.chessBoardState,
       boardState,
     );
@@ -56,16 +63,29 @@ export class ChessGameStore extends GameStoreBase {
         boardState,
       );
       if (foundMoves !== null) {
+        const newState = getNewChessBoardStateFromPreviousAndMove(
+          this.chessBoardState,
+          foundMoves[0],
+        );
+        this._chessBoardValidator.setNewState(newState);
+        this._chessBoardValidator.setPrevState(this.chessBoardState);
         if (this._chessBoardValidator.validate()) {
           if (foundMoves.length === 1) {
-            this.chessBoardState = getNewChessBoardStateFromPreviousAndMove(
-              this.chessBoardState,
+            const isMoveLegal = this._chessBoardAnalyzer.makeMove(
               foundMoves[0],
             );
-            this.makeMove(foundMoves[0].startPos, foundMoves[0].finishPos);
+            if (isMoveLegal) {
+              this.chessBoardState = newState;
+              this.makeMove(foundMoves[0].startPos, foundMoves[0].finishPos);
+            } else {
+              throw Error('MOVE ILLEGAL');
+            }
           } else {
             throw Error(UNHANDLED_INNER_ERROR);
           }
+        } else {
+          console.log(this._chessBoardValidator.getErrors());
+          throw Error(VALIDATION_ERROR);
         }
       }
     }
@@ -78,13 +98,12 @@ export class ChessGameStore extends GameStoreBase {
   ///    if figure appeared in new state and it was undefiend in prev state it is finishPos
   ///    if figure changed the color in new state it is finishPos
   /// validate last move
-  ///     consider castling if king and rook moved in one move
-  ///     changing pawn to any figure if pawn got to another part
-  ///     get pawn if king went to another board part
   /// set new state
   public onNewBoardStateMessage(updateCellsState: UpdateCellState[]) {
-    const newChessBoardState =
-      transformUpdateCellStateToChessBoardState(updateCellsState);
+    const newChessBoardState = transformUpdateCellStateToChessBoardState(
+      updateCellsState,
+      this._rootStore.calibrationStore.averageData,
+    );
     this.setChessBoardState(newChessBoardState);
   }
 

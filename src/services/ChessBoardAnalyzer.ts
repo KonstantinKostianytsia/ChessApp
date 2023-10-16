@@ -1,3 +1,4 @@
+import {Chess} from 'chess.js';
 import {DEFAULT_BOARD_SIZE} from 'constants/BoardConstants';
 import {VALIDATION_ERROR} from 'constants/ErrorConstants';
 import {
@@ -5,6 +6,7 @@ import {
   convertRowIndexToRow,
 } from 'helpers/boardHelpers';
 import {converUpdateCellStateTypeToBoardState} from 'helpers/mappers/BoardStateMappers';
+import {convertIBoardCellCoordsToStandartAnotation} from 'helpers/mappers/ChessBoardMappers';
 import {
   BoardCellCoord,
   BoardWithChessFigureState,
@@ -19,11 +21,17 @@ import {
   IChessBoardAnalyzer,
   IChessMove,
 } from 'models/services/IChessBoardAnalyzer';
+import {IChessFigureTransformerToFEN} from 'models/services/IChessFigureTransformer';
 
 const UNHANDLED_CASTLING = 'UNHANDLED_CASTLING';
 
-export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
+export class ChessBoardAnalyzer
+  implements IChessBoardAnalyzer, IChessFigureTransformerToFEN
+{
   averageCellsValues: AverageCellsValues = [];
+
+  private _chessGame: Chess = new Chess();
+
   isStateChanged(
     prevState: BoardWithChessFigureState | undefined,
     newState: BoardWithChessFigureState | undefined,
@@ -150,6 +158,9 @@ export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
       }
     }
 
+    console.log(startPos);
+    console.log(finishPos);
+    console.log(figure);
     if (amountOfStateChanges % 2 !== 0) {
       /// a correct movement contains even amount of changes
       throw Error(VALIDATION_ERROR);
@@ -241,5 +252,27 @@ export class ChessBoardAnalyzer implements IChessBoardAnalyzer {
         }
       }
     }
+  }
+
+  getFEN(): string {
+    return this._chessGame.fen();
+  }
+
+  makeMove(chessMove: IChessMove): boolean {
+    try {
+      const move = this._chessGame.move({
+        from: convertIBoardCellCoordsToStandartAnotation(chessMove.startPos),
+        to: convertIBoardCellCoordsToStandartAnotation(chessMove.finishPos),
+      });
+      console.log(move);
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  }
+
+  displayBoardState(): void {
+    console.log(this._chessGame.ascii());
   }
 }

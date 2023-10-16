@@ -1,50 +1,39 @@
 import {BoardWithChessFigureState} from 'models/boardModels/Board';
 import {IChessBoardValidator} from 'models/helpers/validators/IChessBoardValidator';
-import {IChessBoardAnalyzer} from 'models/services/IChessBoardAnalyzer';
 
 export class ChessBoardValidator implements IChessBoardValidator {
-  private prevState: BoardWithChessFigureState = [];
-  private newState: BoardWithChessFigureState = [];
-  private errorList: Array<string> = [];
+  private _prevState: BoardWithChessFigureState = [];
+  private _newState: BoardWithChessFigureState = [];
+  private _errorList: Array<string> = [];
 
-  private _chessBoardAnalyzer: IChessBoardAnalyzer;
-
-  constructor(chessBoardAnalyzer: IChessBoardAnalyzer) {
-    this._chessBoardAnalyzer = chessBoardAnalyzer;
+  setNewState(newState: BoardWithChessFigureState) {
+    this._newState = newState;
   }
 
-  private addNewError(errorMessage: string) {
-    this.errorList.push(errorMessage);
-  }
-
-  setNewState(
-    prevState: BoardWithChessFigureState,
-    newState: BoardWithChessFigureState,
-  ) {
-    const isStateChanged = this._chessBoardAnalyzer.isStateChanged(
-      prevState,
-      newState,
-    );
-    if (isStateChanged) {
-      this.prevState = prevState;
-      this.newState = newState;
-      return true;
-    }
-    return false;
+  setPrevState(prevState: BoardWithChessFigureState): void {
+    this._prevState = prevState;
   }
 
   validate() {
-    if (this.newState.length === 0) {
+    if (this._newState.length === 0) {
       this.addNewError('New state is empty');
       return false;
     }
-    /// validate amount of figures
-    /// validate colors of figures
-    /// validate move
+    if (!this.validateAmountAndColorsOfFigures()) {
+      return false;
+    }
     return true;
   }
 
   getErrors() {
-    return this.errorList;
+    return this._errorList;
+  }
+
+  private addNewError(errorMessage: string) {
+    this._errorList.push(errorMessage);
+  }
+
+  private validateAmountAndColorsOfFigures(): boolean {
+    return true;
   }
 }

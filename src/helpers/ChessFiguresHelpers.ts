@@ -16,11 +16,11 @@ import {
   converRowToRowIndex,
   getBoardDeepCopy,
 } from './boardHelpers';
+import {CHESS_FIGURE_TRESHHOLD} from 'constants/ChessFiguresConstants';
 import {
-  CHESS_BOARD_CELL_NORMAL_VALUE,
-  CHESS_FIGURE_TRESHHOLD,
-} from 'constants/ChessFiguresConstants';
-import {IChessMove} from 'models/services/IChessBoardAnalyzer';
+  AverageCellsValues,
+  IChessMove,
+} from 'models/services/IChessBoardAnalyzer';
 
 export const getImageOfChessFigure = (
   theme: IUseTheme,
@@ -61,6 +61,7 @@ export const getImageOfChessFigure = (
 
 export const transformUpdateCellStateToChessBoardState = (
   updateCellState: UpdateCellState[],
+  averageCellsValues: AverageCellsValues,
 ): BoardWithChessFigureState => {
   const boardCopy: BoardWithChessFigureState = [];
   for (let row = 0; row < DEFAULT_BOARD_SIZE; ++row) {
@@ -76,7 +77,10 @@ export const transformUpdateCellStateToChessBoardState = (
     const cellState: CellWithChessFigureStateType = {
       ...item.cellState,
       cellChessFigure: item.cellState.cellValue
-        ? convertESPCellValueToChessFigure(item.cellState.cellValue)
+        ? convertESPCellValueToChessFigure(
+            item.cellState.cellValue,
+            averageCellsValues[rowIndex][columnIndex],
+          )
         : undefined,
     };
 
@@ -88,8 +92,9 @@ export const transformUpdateCellStateToChessBoardState = (
 
 export const convertESPCellValueToChessFigure = (
   cellValue: number,
+  averageCellValue: number,
 ): ChessFigure | undefined => {
-  const divergenceFromAverage = cellValue - CHESS_BOARD_CELL_NORMAL_VALUE;
+  const divergenceFromAverage = cellValue - averageCellValue;
   if (Math.abs(divergenceFromAverage) < CHESS_FIGURE_TRESHHOLD) {
     return undefined;
   }

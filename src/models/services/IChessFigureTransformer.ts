@@ -24,3 +24,7 @@ export interface IChessFigureTransformer {
     chessBoardState: BoardWithChessFigureState,
   ): ChessTransformerValue;
 }
+
+export interface IChessFigureTransformerToFEN {
+  getFEN(): string;
+}

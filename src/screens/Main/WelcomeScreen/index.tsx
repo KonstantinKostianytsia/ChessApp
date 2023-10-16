@@ -14,7 +14,10 @@ import AvailableDevicesListPicker from 'components/organizms/ListDevicePicker';
 import OutlineButton from 'components/moleculs/OutlineButton';
 import {ModalWithHeader} from 'components/moleculs/ModalWithHeader';
 import {IDeviceInfo} from 'models/common/IDeviceInfo';
-import {useBluetoothDevicesStore} from 'helpers/hooks/useStore';
+import {
+  useBluetoothDevicesStore,
+  useCalibrationStore,
+} from 'helpers/hooks/useStore';
 import RefreshButton from 'components/moleculs/RefreshButton';
 import {IAlertsService} from 'models/services/IAlertsService';
 import {RNAlertsService} from 'services/RNAlertsService';
@@ -30,6 +33,7 @@ const WelcomeScreen = () => {
 
   const theme = useTheme();
   const bluetoothDevicesStore = useBluetoothDevicesStore();
+  const calibrationStore = useCalibrationStore();
   const navigation = useNavigation<WelcomeScreenNavigatioProp>();
 
   const [isDeviceModalVisible, setIsDeviceModalVisible] = useState(false);
@@ -86,7 +90,11 @@ const WelcomeScreen = () => {
       navigation.navigate(MainStackRoutes.ChangeBoardColorScreen);
     };
     const onPressClassicGame = () => {
-      navigation.navigate(MainStackRoutes.ChessGameScreen);
+      if (calibrationStore.averageData.length === 0) {
+        navigation.navigate(MainStackRoutes.CalibrationScreen);
+      } else {
+        navigation.navigate(MainStackRoutes.ChessGameScreen);
+      }
     };
     return (
       <View style={styles.buttonsContainerStyles}>

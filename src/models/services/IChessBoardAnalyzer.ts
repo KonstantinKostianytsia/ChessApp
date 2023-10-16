@@ -71,4 +71,6 @@ export interface IChessBoardAnalyzer {
   };
 
   collectDataForAverageDataTable(newState: UpdateCellState[]): void;
+  makeMove(chessMove: IChessMove): boolean;
+  displayBoardState(): void;
 }
