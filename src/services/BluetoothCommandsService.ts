@@ -16,7 +16,7 @@ import {
 
 export class BluetoothCommandsService implements IBluetoothCommandsService {
   private convertCellDataToString = (cellData: CellDataType): string => {
-    return `${cellData.cellRGBColor}_${converRowToRowIndex(
+    return `${cellData.cellRGBColor || '#000000'}_${converRowToRowIndex(
       cellData.row,
     )}${CHARACTER_TO_SEPARATE_FIELDS}${converColumnToColummnIndex(
       cellData.column,

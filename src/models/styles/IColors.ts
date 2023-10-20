@@ -9,4 +9,8 @@ export interface IColors {
   darkGreyText: string;
   selectedListItem: string;
   cancelButtonBackground: string;
+  cellErrorStateColor: string;
+  cellHintStateColor: string;
+  cellDangerStateColor: string;
+  cellValidStateColor: string;
 }

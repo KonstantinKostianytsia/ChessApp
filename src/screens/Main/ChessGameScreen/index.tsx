@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react';
-import {Dimensions, View, Text} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {Dimensions, View} from 'react-native';
 import {Observer} from 'mobx-react';
 import {useKeepAwake} from '@sayem314/react-native-keep-awake';
 
@@ -14,6 +14,13 @@ import {useTheme} from 'helpers/hooks/useTheme';
 import {BOARD_CELLS_PADDINGS} from 'constants/BoardConstants';
 import {Row} from 'models/boardModels/Row';
 import {Column} from 'models/boardModels/Column';
+import {IBluetoothCommandsService} from 'models/services/IBluetoothCommandsService';
+import {BluetoothCommandsService} from 'services/BluetoothCommandsService';
+import {CellDataType} from 'models/boardModels/Board';
+import {ChessMoveError} from 'models/errors/ChessMoveError';
+import {usePrevious} from 'helpers/hooks/usePrevious';
+import {autorun} from 'mobx';
+import {IChessMove} from 'models/services/IChessBoardAnalyzer';
 
 const dimensions = Dimensions.get('window');
 
@@ -27,11 +34,20 @@ const ChessGameScreen = () => {
   const bluetoothStore = useBluetoothDevicesStore();
   const theme = useTheme();
 
+  const prevShownError = useRef<IChessMove | null>(null);
+
+  const bluetoothMessageFormatter: IBluetoothCommandsService =
+    new BluetoothCommandsService();
+
   useEffect(() => {
     try {
       const removeListener = bluetoothStore.setOnBoardStateMessage(
         updateCellsState => {
-          chessGameStore.onNewBoardStateMessage(updateCellsState);
+          try {
+            chessGameStore.onNewBoardStateMessage(updateCellsState);
+          } catch (err) {
+            handleError(err);
+          }
         },
       );
 
@@ -42,6 +58,48 @@ const ChessGameScreen = () => {
       console.warn(err);
     }
   }, []);
+
+  /// Disables error cells
+  useEffect(() => {
+    const disposer = autorun(() => {
+      if (chessGameStore.shownErrorMoves === null && prevShownError.current) {
+        changeCellsColor([
+          {
+            ...prevShownError.current?.startPos,
+            cellRGBColor: undefined,
+          },
+          {
+            ...prevShownError.current?.finishPos,
+            cellRGBColor: undefined,
+          },
+        ]);
+      }
+      prevShownError.current = chessGameStore.shownErrorMoves;
+    });
+    return disposer;
+  }, []);
+
+  const handleError = (err: unknown) => {
+    if (err instanceof ChessMoveError) {
+      changeCellsColor([
+        {
+          ...err.wrongMove.startPos,
+          cellRGBColor: theme.colors.cellValidStateColor,
+        },
+        {
+          ...err.wrongMove.finishPos,
+          cellRGBColor: theme.colors.cellErrorStateColor,
+        },
+      ]);
+      chessGameStore.setErrorMove(err.wrongMove);
+    }
+  };
+
+  const changeCellsColor = (cellData: CellDataType[]) => {
+    bluetoothStore.sendMessageToConnectedDevice(
+      bluetoothMessageFormatter.convertCellState(cellData),
+    );
+  };
 
   const renderBoard = () => {
     const onPressCell = (row: Row, column: Column) => {

@@ -1,12 +1,12 @@
 import {initialChessBoardState} from 'boardStates/ChessBoardStates/initialChessBoardState';
 import {
-  UNHANDLED_INNER_ERROR,
-  VALIDATION_ERROR,
-} from 'constants/ErrorConstants';
-import {
   getNewChessBoardStateFromPreviousAndMove,
   transformUpdateCellStateToChessBoardState,
 } from 'helpers/ChessFiguresHelpers';
+import {
+  converColumnToColummnIndex,
+  converRowToRowIndex,
+} from 'helpers/boardHelpers';
 import {action, makeObservable, observable} from 'mobx';
 
 import {
@@ -14,8 +14,13 @@ import {
   BoardWithChessFigureState,
   UpdateCellState,
 } from 'models/boardModels/Board';
+import {BaseErrorType} from 'models/common/ErrorType';
+import {BaseError} from 'models/errors/BaseError';
 import {IChessBoardValidator} from 'models/helpers/validators/IChessBoardValidator';
-import {IChessBoardAnalyzer} from 'models/services/IChessBoardAnalyzer';
+import {
+  IChessBoardAnalyzer,
+  IChessMove,
+} from 'models/services/IChessBoardAnalyzer';
 import {IChessFigureTransformer} from 'models/services/IChessFigureTransformer';
 import {GameStoreBase} from 'models/stores/GameStoreBase';
 import {RootStore} from 'stores';
@@ -23,6 +28,7 @@ import {RootStore} from 'stores';
 export class ChessGameStore extends GameStoreBase {
   chessBoardState: BoardWithChessFigureState = [];
   currentCellCoord: BoardCellCoord | undefined = undefined;
+  shownErrorMoves: IChessMove | null = null;
 
   private _chessTransformerService: IChessFigureTransformer;
   private _chessBoardValidator: IChessBoardValidator;
@@ -40,8 +46,10 @@ export class ChessGameStore extends GameStoreBase {
     makeObservable(this, {
       chessBoardState: observable,
       currentCellCoord: observable,
+      shownErrorMoves: observable,
       setChessBoardState: action,
       initializeBoard: action,
+      setErrorMove: action,
     });
 
     this._chessTransformerService = chessTransformerService;
@@ -57,6 +65,7 @@ export class ChessGameStore extends GameStoreBase {
       this.chessBoardState,
       boardState,
     );
+    this.checkPreviousIncorrectMovesFixed(boardState);
     if (isStateChanged) {
       const foundMoves = this._chessBoardAnalyzer.findLastMove(
         this.chessBoardState,
@@ -71,21 +80,17 @@ export class ChessGameStore extends GameStoreBase {
         this._chessBoardValidator.setPrevState(this.chessBoardState);
         if (this._chessBoardValidator.validate()) {
           if (foundMoves.length === 1) {
-            const isMoveLegal = this._chessBoardAnalyzer.makeMove(
-              foundMoves[0],
-            );
-            if (isMoveLegal) {
+            try {
+              this._chessBoardAnalyzer.makeMove(foundMoves[0]);
               this.chessBoardState = newState;
               this.makeMove(foundMoves[0].startPos, foundMoves[0].finishPos);
-            } else {
-              throw Error('MOVE ILLEGAL');
+            } catch (err) {
+              throw err;
             }
-          } else {
-            throw Error(UNHANDLED_INNER_ERROR);
           }
         } else {
           console.log(this._chessBoardValidator.getErrors());
-          throw Error(VALIDATION_ERROR);
+          throw new BaseError(BaseErrorType.VALIDATION_ERROR);
         }
       }
     }
@@ -93,6 +98,7 @@ export class ChessGameStore extends GameStoreBase {
 
   /// Get New State
   /// Check if state changed
+  /// Check previous error cells changed
   /// Find last move comparing new state and previous, get all moves return null | Array<IMove>
   ///    if figure was in prev state and disappeared in new state it is startPos
   ///    if figure appeared in new state and it was undefiend in prev state it is finishPos
@@ -100,11 +106,15 @@ export class ChessGameStore extends GameStoreBase {
   /// validate last move
   /// set new state
   public onNewBoardStateMessage(updateCellsState: UpdateCellState[]) {
-    const newChessBoardState = transformUpdateCellStateToChessBoardState(
-      updateCellsState,
-      this._rootStore.calibrationStore.averageData,
-    );
-    this.setChessBoardState(newChessBoardState);
+    try {
+      const newChessBoardState = transformUpdateCellStateToChessBoardState(
+        updateCellsState,
+        this._rootStore.calibrationStore.averageData,
+      );
+      this.setChessBoardState(newChessBoardState);
+    } catch (err) {
+      throw err;
+    }
   }
 
   public initializeBoard() {
@@ -113,5 +123,28 @@ export class ChessGameStore extends GameStoreBase {
         initialChessBoardState,
       );
     this.chessBoardState = chessBoard;
+  }
+
+  public setErrorMove(move: IChessMove) {
+    this.shownErrorMoves = move;
+  }
+
+  private checkPreviousIncorrectMovesFixed(
+    newState: BoardWithChessFigureState,
+  ) {
+    if (this.shownErrorMoves) {
+      const newStartPosState =
+        newState[converRowToRowIndex(this.shownErrorMoves.startPos.row)][
+          converColumnToColummnIndex(this.shownErrorMoves.startPos.column)
+        ];
+      if (
+        newStartPosState?.cellChessFigure &&
+        newStartPosState.cellChessFigure.equals(
+          this.shownErrorMoves.chessFigure,
+        )
+      ) {
+        this.shownErrorMoves = null;
+      }
+    }
   }
 }

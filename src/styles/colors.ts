@@ -11,4 +11,8 @@ export const lightColors: IColors = {
   darkGreyText: '#333333',
   selectedListItem: '#4CAF50',
   cancelButtonBackground: '#FF0000',
+  cellErrorStateColor: '#FF0000',
+  cellHintStateColor: '#19BDFF',
+  cellDangerStateColor: '#FF0000',
+  cellValidStateColor: '#00FF00',
 };

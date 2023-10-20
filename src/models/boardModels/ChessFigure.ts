@@ -31,7 +31,8 @@ export class ChessFigure {
     return (
       this.color === anotherChessFigure.color &&
       (this.figureType === anotherChessFigure.figureType ||
-        anotherChessFigure.figureType === ChessFigureType.Unknown)
+        anotherChessFigure.figureType === ChessFigureType.Unknown ||
+        this.figureType === ChessFigureType.Unknown)
     );
   }
 }

@@ -1,13 +1,11 @@
-import {CustomError} from 'models/common/CustomError';
+import {BaseError} from 'models/errors/BaseError';
 
 export enum BluetoothErrorType {
   UnknownError,
 }
 
-export class BluetoothError extends CustomError {
-  errorType: BluetoothErrorType;
-  constructor(errorType: BluetoothErrorType, message?: string) {
-    super(message);
-    this.errorType = errorType;
+export class BluetoothError extends BaseError {
+  constructor(type: BluetoothErrorType, message?: string) {
+    super(type, message);
   }
 }

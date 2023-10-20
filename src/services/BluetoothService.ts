@@ -27,10 +27,7 @@ import {
 } from 'mappers/BluetoothMappers';
 import {mapPeripheralToIDeviceInfo} from 'helpers/mappers/RNBleManagerMapper';
 import BufferService from './BufferService';
-import {
-  BluetoothError,
-  BluetoothErrorType,
-} from 'models/services/BluetoothErrors';
+import {BluetoothError} from 'models/services/BluetoothErrors';
 
 const BleManagerModule = NativeModules.BleManager;
 const BleManagerEmitter = new NativeEventEmitter(BleManagerModule);

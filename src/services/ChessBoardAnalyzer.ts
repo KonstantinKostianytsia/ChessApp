@@ -1,6 +1,5 @@
 import {Chess} from 'chess.js';
 import {DEFAULT_BOARD_SIZE} from 'constants/BoardConstants';
-import {VALIDATION_ERROR} from 'constants/ErrorConstants';
 import {
   convertColumnIndexToColumn,
   convertRowIndexToRow,
@@ -14,6 +13,7 @@ import {
   UpdateCellState,
 } from 'models/boardModels/Board';
 import {ChessFigure} from 'models/boardModels/ChessFigure';
+import {ChessMoveError, ChessMoveErrorType} from 'models/errors/ChessMoveError';
 import {
   AverageCellsValues,
   ChessBoardCounterResponse,
@@ -158,12 +158,13 @@ export class ChessBoardAnalyzer
       }
     }
 
-    console.log(startPos);
-    console.log(finishPos);
-    console.log(figure);
+    // console.log(startPos);
+    // console.log(finishPos);
+    // console.log(figure);
     if (amountOfStateChanges % 2 !== 0) {
       /// a correct movement contains even amount of changes
-      throw Error(VALIDATION_ERROR);
+      // throw Error(VALIDATION_ERROR);
+      return null;
     }
 
     const foundStartPos = startPos.length;
@@ -258,17 +259,20 @@ export class ChessBoardAnalyzer
     return this._chessGame.fen();
   }
 
-  makeMove(chessMove: IChessMove): boolean {
+  makeMove(chessMove: IChessMove): void {
     try {
       const move = this._chessGame.move({
         from: convertIBoardCellCoordsToStandartAnotation(chessMove.startPos),
         to: convertIBoardCellCoordsToStandartAnotation(chessMove.finishPos),
       });
       console.log(move);
-      return true;
     } catch (err) {
       console.log(err);
-      return false;
+      throw new ChessMoveError(
+        chessMove,
+        ChessMoveErrorType.IlligalMove,
+        String(err),
+      );
     }
   }
 
