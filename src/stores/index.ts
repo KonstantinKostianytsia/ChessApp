@@ -10,6 +10,7 @@ import {BluetoothCommandsService} from 'services/BluetoothCommandsService';
 import {ChessBoardValidator} from 'helpers/validator/ChessBoardValidator';
 import {ChessBoardAnalyzer} from 'services/ChessBoardAnalyzer';
 import {CalibrationStore} from './Main/CalibrationStore';
+import {ChessEngineStore} from './Main/ChessEngineStore';
 
 export class RootStore {
   private bluetoothService: IBluetoothService = new BluetoothService();
@@ -19,6 +20,7 @@ export class RootStore {
   bluetoothDevicesStore: BluetoothDevicesStore;
   chesssGameStore: ChessGameStore;
   calibrationStore: CalibrationStore;
+  chessEngineStore: ChessEngineStore;
 
   constructor() {
     this.bluetoothDevicesStore = new BluetoothDevicesStore(
@@ -35,6 +37,7 @@ export class RootStore {
       this,
     );
     this.calibrationStore = new CalibrationStore(chessBoardAnalyzer);
+    this.chessEngineStore = new ChessEngineStore();
   }
 }
 

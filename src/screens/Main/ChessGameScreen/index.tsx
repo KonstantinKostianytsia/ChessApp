@@ -7,6 +7,7 @@ import ChessBoard from 'components/organizms/ChessBoard';
 import BackgroundColor from 'components/atoms/BackgroundColor';
 import {
   useBluetoothDevicesStore,
+  useChessEngineStore,
   useChessGameStore,
 } from 'helpers/hooks/useStore';
 import styles from './styles';
@@ -21,6 +22,8 @@ import {ChessMoveError} from 'models/errors/ChessMoveError';
 import {usePrevious} from 'helpers/hooks/usePrevious';
 import {autorun} from 'mobx';
 import {IChessMove} from 'models/services/IChessBoardAnalyzer';
+import {ChessFigureColor} from 'models/boardModels/ChessFigure';
+import Labels from 'components/atoms/Labels';
 
 const dimensions = Dimensions.get('window');
 
@@ -32,6 +35,7 @@ const ChessGameScreen = () => {
 
   const chessGameStore = useChessGameStore();
   const bluetoothStore = useBluetoothDevicesStore();
+  const chessEngineStore = useChessEngineStore();
   const theme = useTheme();
 
   const prevShownError = useRef<IChessMove | null>(null);
@@ -57,6 +61,50 @@ const ChessGameScreen = () => {
     } catch (err) {
       console.warn(err);
     }
+  }, []);
+
+  useEffect(() => {
+    chessEngineStore
+      .setChessEngineListener(move => {
+        changeCellsColor([
+          {
+            ...move.startPos,
+            cellRGBColor: theme.colors.cellValidStateColor,
+          },
+          {
+            ...move.finishPos,
+            cellRGBColor: theme.colors.cellHintStateColor,
+          },
+        ]);
+      })
+      .then(removeListener => {
+        return () => {
+          chessEngineStore.shutdownEngine();
+          removeListener.remove();
+        };
+      });
+  }, []);
+
+  useEffect(() => {
+    const disposer = autorun(() => {
+      if (chessGameStore.whoseTurn === ChessFigureColor.Black) {
+        chessEngineStore.findBestMove(chessGameStore.getCurrentFenState());
+      } else {
+        if (chessEngineStore.lastBestMove) {
+          changeCellsColor([
+            {
+              ...chessEngineStore.lastBestMove.startPos,
+              cellRGBColor: undefined,
+            },
+            {
+              ...chessEngineStore.lastBestMove.finishPos,
+              cellRGBColor: undefined,
+            },
+          ]);
+        }
+      }
+    });
+    return disposer;
   }, []);
 
   /// Disables error cells
@@ -121,6 +169,11 @@ const ChessGameScreen = () => {
           containerStyles={styles.backgroundStyles}
           backgroundColor={theme.colors.lightGrey}>
           <>
+            {chessEngineStore.isFindingBestWay && (
+              <Labels.MediumText>
+                The Engine searching for best move
+              </Labels.MediumText>
+            )}
             <View
               style={{
                 height: BOARD_SIZE,

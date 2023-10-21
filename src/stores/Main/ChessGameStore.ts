@@ -7,6 +7,7 @@ import {
   converColumnToColummnIndex,
   converRowToRowIndex,
 } from 'helpers/boardHelpers';
+import {movesAreEqual} from 'helpers/utils/moveUtils';
 import {action, makeObservable, observable} from 'mobx';
 
 import {
@@ -14,14 +15,23 @@ import {
   BoardWithChessFigureState,
   UpdateCellState,
 } from 'models/boardModels/Board';
+import {ChessFigureColor} from 'models/boardModels/ChessFigure';
 import {BaseErrorType} from 'models/common/ErrorType';
 import {BaseError} from 'models/errors/BaseError';
+import {
+  ChessEngineError,
+  ChessEngineErrorType,
+} from 'models/errors/ChessEngineError';
+import {ChessMoveError, ChessMoveErrorType} from 'models/errors/ChessMoveError';
 import {IChessBoardValidator} from 'models/helpers/validators/IChessBoardValidator';
 import {
   IChessBoardAnalyzer,
   IChessMove,
 } from 'models/services/IChessBoardAnalyzer';
-import {IChessFigureTransformer} from 'models/services/IChessFigureTransformer';
+import {
+  IChessFigureTransformer,
+  IChessFigureTransformerToFEN,
+} from 'models/services/IChessFigureTransformer';
 import {GameStoreBase} from 'models/stores/GameStoreBase';
 import {RootStore} from 'stores';
 
@@ -29,16 +39,18 @@ export class ChessGameStore extends GameStoreBase {
   chessBoardState: BoardWithChessFigureState = [];
   currentCellCoord: BoardCellCoord | undefined = undefined;
   shownErrorMoves: IChessMove | null = null;
+  whoseTurn: ChessFigureColor = ChessFigureColor.White;
 
   private _chessTransformerService: IChessFigureTransformer;
   private _chessBoardValidator: IChessBoardValidator;
-  private _chessBoardAnalyzer: IChessBoardAnalyzer;
+  private _chessBoardAnalyzer: IChessBoardAnalyzer &
+    IChessFigureTransformerToFEN;
   private _rootStore: RootStore;
 
   constructor(
     chessTransformerService: IChessFigureTransformer,
     chessBoardValidator: IChessBoardValidator,
-    chessBoardAnalyzer: IChessBoardAnalyzer,
+    chessBoardAnalyzer: IChessBoardAnalyzer & IChessFigureTransformerToFEN,
     rootStore: RootStore,
   ) {
     super();
@@ -47,9 +59,11 @@ export class ChessGameStore extends GameStoreBase {
       chessBoardState: observable,
       currentCellCoord: observable,
       shownErrorMoves: observable,
+      whoseTurn: observable,
       setChessBoardState: action,
       initializeBoard: action,
       setErrorMove: action,
+      changeWhoseTurn: action,
     });
 
     this._chessTransformerService = chessTransformerService;
@@ -72,6 +86,26 @@ export class ChessGameStore extends GameStoreBase {
         boardState,
       );
       if (foundMoves !== null) {
+        /// If it is stockfish turn
+        /// check a figure was moved to a cell stockfish selected
+        if (this.whoseTurn === ChessFigureColor.Black) {
+          if (!this._rootStore.chessEngineStore.lastBestMove) {
+            throw new ChessEngineError(
+              ChessEngineErrorType.LastBestMoveNotFound,
+            );
+          }
+          if (
+            !movesAreEqual(
+              foundMoves[0],
+              this._rootStore.chessEngineStore.lastBestMove,
+            )
+          ) {
+            throw new ChessMoveError(
+              foundMoves[0],
+              ChessMoveErrorType.IncorrectMove,
+            );
+          }
+        }
         const newState = getNewChessBoardStateFromPreviousAndMove(
           this.chessBoardState,
           foundMoves[0],
@@ -84,6 +118,7 @@ export class ChessGameStore extends GameStoreBase {
               this._chessBoardAnalyzer.makeMove(foundMoves[0]);
               this.chessBoardState = newState;
               this.makeMove(foundMoves[0].startPos, foundMoves[0].finishPos);
+              this.changeWhoseTurn();
             } catch (err) {
               throw err;
             }
@@ -127,6 +162,18 @@ export class ChessGameStore extends GameStoreBase {
 
   public setErrorMove(move: IChessMove) {
     this.shownErrorMoves = move;
+  }
+
+  public changeWhoseTurn() {
+    if (this.whoseTurn === ChessFigureColor.White) {
+      this.whoseTurn = ChessFigureColor.Black;
+    } else {
+      this.whoseTurn = ChessFigureColor.White;
+    }
+  }
+
+  public getCurrentFenState() {
+    return this._chessBoardAnalyzer.getFEN();
   }
 
   private checkPreviousIncorrectMovesFixed(
