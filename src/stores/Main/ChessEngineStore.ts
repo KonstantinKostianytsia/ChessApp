@@ -109,6 +109,7 @@ export class ChessEngineStore {
     callback: ChessEngineIMoveCallback,
   ): ChessServiceEventCallback {
     return (line: string) => {
+      console.log('Stockfish', line);
       const bestMove = this.parseChessServiceEvent(line);
       if (bestMove) {
         this.setLastBestMove(bestMove);

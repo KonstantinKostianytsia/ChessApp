@@ -4,6 +4,7 @@ import {IChessMove} from 'models/services/IChessBoardAnalyzer';
 export enum ChessMoveErrorType {
   IlligalMove = 'IlligalMove',
   IncorrectMove = 'IncorrectMove',
+  MoveNotFound = 'MoveNotFound',
 }
 
 export class ChessMoveError extends BaseError {

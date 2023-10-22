@@ -1,4 +1,4 @@
-import {Chess} from 'chess.js';
+import {Chess, Square} from 'chess.js';
 import {DEFAULT_BOARD_SIZE} from 'constants/BoardConstants';
 import {
   convertColumnIndexToColumn,
@@ -12,7 +12,7 @@ import {
   CellWithChessFigureStateType,
   UpdateCellState,
 } from 'models/boardModels/Board';
-import {ChessFigure} from 'models/boardModels/ChessFigure';
+import {ChessFigure, ChessFigureColor} from 'models/boardModels/ChessFigure';
 import {ChessMoveError, ChessMoveErrorType} from 'models/errors/ChessMoveError';
 import {
   AverageCellsValues,
@@ -31,6 +31,10 @@ export class ChessBoardAnalyzer
   averageCellsValues: AverageCellsValues = [];
 
   private _chessGame: Chess = new Chess();
+
+  loadFen(currentFen: string) {
+    this._chessGame.load(currentFen);
+  }
 
   isStateChanged(
     prevState: BoardWithChessFigureState | undefined,
@@ -158,9 +162,6 @@ export class ChessBoardAnalyzer
       }
     }
 
-    // console.log(startPos);
-    // console.log(finishPos);
-    // console.log(figure);
     if (amountOfStateChanges % 2 !== 0) {
       /// a correct movement contains even amount of changes
       // throw Error(VALIDATION_ERROR);
@@ -278,5 +279,40 @@ export class ChessBoardAnalyzer
 
   displayBoardState(): void {
     console.log(this._chessGame.ascii());
+  }
+
+  isCellUnderAtack(
+    cellCoord: BoardCellCoord,
+    attackedByColor: ChessFigureColor,
+  ): boolean {
+    return this._chessGame.isAttacked(
+      convertIBoardCellCoordsToStandartAnotation(cellCoord) as Square,
+      attackedByColor === ChessFigureColor.White ? 'w' : 'b',
+    );
+  }
+
+  isCheckmate(): boolean {
+    return this._chessGame.isCheckmate();
+  }
+
+  isDraw(): boolean {
+    return this._chessGame.isDraw();
+  }
+
+  isStaleMate(): boolean {
+    return this._chessGame.isStalemate();
+  }
+
+  isInsufficientMaterial(): boolean {
+    return this._chessGame.isInsufficientMaterial();
+  }
+
+  isThreefoldRepetition(): boolean {
+    return this._chessGame.isThreefoldRepetition();
+  }
+
+  /// Is true in case checkmate, stalemate, draw, insufficient material, threfold repetition
+  isGameOver(): boolean {
+    return this._chessGame.isGameOver();
   }
 }

@@ -32,3 +32,14 @@ export const testChessBoardState: ChessTransformerValue = [
   '.......P',
   '........',
 ];
+
+export const testCheckmate: ChessTransformerValue = [
+  '....k...',
+  '....p...',
+  '........',
+  '........',
+  '........',
+  '........',
+  '....P...',
+  '....K...',
+];

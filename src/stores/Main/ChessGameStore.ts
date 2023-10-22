@@ -1,4 +1,5 @@
 import {initialChessBoardState} from 'boardStates/ChessBoardStates/initialChessBoardState';
+import {DEFAULT_BOARD_SIZE} from 'constants/BoardConstants';
 import {
   getNewChessBoardStateFromPreviousAndMove,
   transformUpdateCellStateToChessBoardState,
@@ -6,6 +7,8 @@ import {
 import {
   converColumnToColummnIndex,
   converRowToRowIndex,
+  convertColumnIndexToColumn,
+  convertRowIndexToRow,
 } from 'helpers/boardHelpers';
 import {movesAreEqual} from 'helpers/utils/moveUtils';
 import {action, makeObservable, observable} from 'mobx';
@@ -15,7 +18,11 @@ import {
   BoardWithChessFigureState,
   UpdateCellState,
 } from 'models/boardModels/Board';
-import {ChessFigureColor} from 'models/boardModels/ChessFigure';
+import {
+  ChessFigure,
+  ChessFigureColor,
+  ChessFigureType,
+} from 'models/boardModels/ChessFigure';
 import {BaseErrorType} from 'models/common/ErrorType';
 import {BaseError} from 'models/errors/BaseError';
 import {
@@ -32,7 +39,7 @@ import {
   IChessFigureTransformer,
   IChessFigureTransformerToFEN,
 } from 'models/services/IChessFigureTransformer';
-import {GameStoreBase} from 'models/stores/GameStoreBase';
+import {GameOverReason, GameStoreBase} from 'models/stores/GameStoreBase';
 import {RootStore} from 'stores';
 
 export class ChessGameStore extends GameStoreBase {
@@ -40,6 +47,8 @@ export class ChessGameStore extends GameStoreBase {
   currentCellCoord: BoardCellCoord | undefined = undefined;
   shownErrorMoves: IChessMove | null = null;
   whoseTurn: ChessFigureColor = ChessFigureColor.White;
+  isGameOver: boolean = false;
+  gameOverReason: GameOverReason | null = null;
 
   private _chessTransformerService: IChessFigureTransformer;
   private _chessBoardValidator: IChessBoardValidator;
@@ -124,10 +133,13 @@ export class ChessGameStore extends GameStoreBase {
             }
           }
         } else {
-          console.log(this._chessBoardValidator.getErrors());
           throw new BaseError(BaseErrorType.VALIDATION_ERROR);
         }
+      } else {
+        throw new Error('MOVE IS NULL');
       }
+    } else {
+      throw new Error("State didn't changed");
     }
   }
 
@@ -176,6 +188,47 @@ export class ChessGameStore extends GameStoreBase {
     return this._chessBoardAnalyzer.getFEN();
   }
 
+  public checkKingIsUnderAttack() {
+    try {
+      const kingCellCoords = this.findFigure(
+        new ChessFigure(this.whoseTurn, ChessFigureType.King),
+      );
+      const isUnderAttack = this._chessBoardAnalyzer.isCellUnderAtack(
+        kingCellCoords,
+        this.whoseTurn === ChessFigureColor.White
+          ? ChessFigureColor.Black
+          : ChessFigureColor.White,
+      );
+      if (isUnderAttack) {
+        return {
+          underAttack: true,
+          cellCoords: kingCellCoords,
+        };
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  public checkIsGameOver(): boolean {
+    if (this._chessBoardAnalyzer.isGameOver()) {
+      this.isGameOver = true;
+      if (this._chessBoardAnalyzer.isCheckmate()) {
+        this.gameOverReason = GameOverReason.CheckMate;
+      } else if (this._chessBoardAnalyzer.isStaleMate()) {
+        this.gameOverReason = GameOverReason.StealMate;
+      } else if (this._chessBoardAnalyzer.isDraw()) {
+        this.gameOverReason = GameOverReason.Draw;
+      } else if (this._chessBoardAnalyzer.isInsufficientMaterial()) {
+        this.gameOverReason = GameOverReason.InsufficientMaterial;
+      } else if (this._chessBoardAnalyzer.isThreefoldRepetition()) {
+        this.gameOverReason = GameOverReason.ThreefoldRepetition;
+      }
+      return true;
+    }
+    return false;
+  }
+
   private checkPreviousIncorrectMovesFixed(
     newState: BoardWithChessFigureState,
   ) {
@@ -193,5 +246,21 @@ export class ChessGameStore extends GameStoreBase {
         this.shownErrorMoves = null;
       }
     }
+  }
+
+  private findFigure(chessFigure: ChessFigure): BoardCellCoord {
+    for (let row = 0; row < DEFAULT_BOARD_SIZE; ++row) {
+      for (let column = 0; column < DEFAULT_BOARD_SIZE; ++column) {
+        if (
+          chessFigure.equals(this.chessBoardState[row][column]?.cellChessFigure)
+        ) {
+          return {
+            row: convertRowIndexToRow(row),
+            column: convertColumnIndexToColumn(column),
+          };
+        }
+      }
+    }
+    throw new BaseError(BaseErrorType.NOT_FOUND, 'Such figure not found');
   }
 }

@@ -43,12 +43,28 @@ const ChessGameScreen = () => {
   const bluetoothMessageFormatter: IBluetoothCommandsService =
     new BluetoothCommandsService();
 
+  /// Chess moves listener
   useEffect(() => {
     try {
       const removeListener = bluetoothStore.setOnBoardStateMessage(
         updateCellsState => {
           try {
             chessGameStore.onNewBoardStateMessage(updateCellsState);
+            clearAllColors();
+            if (chessGameStore.checkIsGameOver()) {
+              console.error(
+                'GAME OVER, Reasong: ' + chessGameStore.gameOverReason,
+              );
+            }
+            const kingUnderAttack = chessGameStore.checkKingIsUnderAttack();
+            if (kingUnderAttack) {
+              changeCellsColor([
+                {
+                  ...kingUnderAttack.cellCoords,
+                  cellRGBColor: theme.colors.cellDangerStateColor,
+                },
+              ]);
+            }
           } catch (err) {
             handleError(err);
           }
@@ -63,6 +79,7 @@ const ChessGameScreen = () => {
     }
   }, []);
 
+  /// Chess Engine listener initialization
   useEffect(() => {
     chessEngineStore
       .setChessEngineListener(move => {
@@ -85,23 +102,11 @@ const ChessGameScreen = () => {
       });
   }, []);
 
+  /// Handles finding best move
   useEffect(() => {
     const disposer = autorun(() => {
       if (chessGameStore.whoseTurn === ChessFigureColor.Black) {
         chessEngineStore.findBestMove(chessGameStore.getCurrentFenState());
-      } else {
-        if (chessEngineStore.lastBestMove) {
-          changeCellsColor([
-            {
-              ...chessEngineStore.lastBestMove.startPos,
-              cellRGBColor: undefined,
-            },
-            {
-              ...chessEngineStore.lastBestMove.finishPos,
-              cellRGBColor: undefined,
-            },
-          ]);
-        }
       }
     });
     return disposer;
@@ -128,6 +133,7 @@ const ChessGameScreen = () => {
   }, []);
 
   const handleError = (err: unknown) => {
+    console.log(err);
     if (err instanceof ChessMoveError) {
       changeCellsColor([
         {
@@ -146,6 +152,12 @@ const ChessGameScreen = () => {
   const changeCellsColor = (cellData: CellDataType[]) => {
     bluetoothStore.sendMessageToConnectedDevice(
       bluetoothMessageFormatter.convertCellState(cellData),
+    );
+  };
+
+  const clearAllColors = () => {
+    bluetoothStore.sendMessageToConnectedDevice(
+      bluetoothMessageFormatter.clearAll(),
     );
   };
 

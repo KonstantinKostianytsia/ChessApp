@@ -1,4 +1,5 @@
 import {
+  BoardCellCoord,
   BoardWithChessFigureState,
   CellWithChessFigureStateType,
   UpdateCellState,
@@ -72,5 +73,16 @@ export interface IChessBoardAnalyzer {
 
   collectDataForAverageDataTable(newState: UpdateCellState[]): void;
   makeMove(chessMove: IChessMove): void;
+  loadFen(currentFen: string): void;
   displayBoardState(): void;
+  isCellUnderAtack(
+    cellCoord: BoardCellCoord,
+    attackedByColor: ChessFigureColor,
+  ): boolean;
+  isCheckmate(): boolean;
+  isStaleMate(): boolean;
+  isDraw(): boolean;
+  isInsufficientMaterial(): boolean;
+  isThreefoldRepetition(): boolean;
+  isGameOver(): boolean;
 }

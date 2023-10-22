@@ -5,6 +5,14 @@ export interface HistoryType {
   endPoint: BoardCellCoord;
 }
 
+export enum GameOverReason {
+  CheckMate = 'CheckMate',
+  StealMate = 'StealMate',
+  Draw = 'Draw',
+  InsufficientMaterial = 'InsufficientMaterial',
+  ThreefoldRepetition = 'ThreefoldRepetition',
+}
+
 export class GameStoreBase {
   private _startDateTime: Date | undefined;
   private _endDateTime: Date | undefined;

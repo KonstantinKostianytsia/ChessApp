@@ -30,12 +30,13 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
     }
   };
 
-  private addFlags = (commandString: string, flags: CommandFlag[]): void => {
+  private addFlags = (commandString: string, flags: CommandFlag[]): string => {
     let flagsString = '%';
     flags.forEach(flag => {
       flagsString += this.convertCommandFlagToString(flag);
     });
     commandString += flagsString;
+    return commandString;
   };
 
   private splitStringByCommands = (commandString: string) => {
@@ -64,7 +65,7 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
     }
 
     if (flags && flags.length > 0) {
-      this.addFlags(returnCommandString, flags);
+      returnCommandString = this.addFlags(returnCommandString, flags);
     }
 
     return returnCommandString;
@@ -91,4 +92,14 @@ export class BluetoothCommandsService implements IBluetoothCommandsService {
 
     return result;
   };
+  public setColorToWholeBoard(color: string): string {
+    throw new Error('NOT IMPLEMENTED');
+    return '';
+  }
+
+  public clearAll(): string {
+    let command = '';
+    command = this.addFlags(command, ['reset']);
+    return command;
+  }
 }

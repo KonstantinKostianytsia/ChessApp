@@ -12,6 +12,8 @@ export interface IBluetoothCommandsService {
     cellState: CellDataType[] | CellDataType,
     flags?: CommandFlag[],
   ) => string;
+  setColorToWholeBoard: (color: string) => string;
+  clearAll: () => string;
   parseBoardFigureState: (boardStateStr: string) => Array<UpdateCellState>;
 }
 
